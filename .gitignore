@@ -1,6 +1,9 @@
 # raw data
 mimic-iv-2.2/
 
+# Mac system file
+*.DS_Store
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
