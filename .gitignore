@@ -1,5 +1,6 @@
-# raw data
+# data
 mimic-iv-2.2/
+moukheiber-respiratory-support-dataset/
 
 # Mac system file
 *.DS_Store
