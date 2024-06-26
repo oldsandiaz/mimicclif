@@ -4,6 +4,7 @@ moukheiber-respiratory-support-dataset/
 
 # Mac system file
 *.DS_Store
+gmon.out
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
