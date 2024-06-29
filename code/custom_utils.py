@@ -6,12 +6,23 @@ def load_gz_csv(file_path):
         df = pd.read_csv(f)
     return df
 
-def lookup_item(df, kw: str, col: str = "label", case: bool = False):
+def lookup_item(df, kw: str, col: str = "label", case: bool = False, cleaner: bool = False):
     '''
-    col = {"label", "abbr"}
+    Look up an item by keyword from the `d_items` table of the `icu` module.
+    - col = {"label", "abbr"}
     '''
     if col == "abbr": col == "abbreviation"
-    output = df[
+    out = df[
         df[col].str.contains(kw, case = case, na = False)
     ]
-    return output
+    # original output
+    if not cleaner:
+        return out
+    # cleaner output:
+    else:
+        cleaner_out = (
+            out
+            .loc[:, ["itemid", "label", "abbreviation", "category", "unitname", "param_type"]]
+            .reset_index(drop = True)
+        )
+        return cleaner_out
