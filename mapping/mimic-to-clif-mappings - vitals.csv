@@ -1,58 +1,58 @@
-vital_category,itemid,label = vital_name,abbreviation,linksto,category,unitname,param_type,count,value_instances,meas_site_name,note / comment,status
-sbp,220179,Non Invasive Blood Pressure systolic,NBPs,,Routine Vital Signs,mmHg,Numeric,4067219,,not specified,,coded/validated by K. Smith
-sbp,220050,Arterial Blood Pressure systolic,ABPs,,Routine Vital Signs,mmHg,Numeric,2264001,,arterial,,coded/validated by K. Smith
-sbp,220059,Pulmonary Artery Pressure systolic,PAPs,,Hemodynamics,mmHg,Numeric,309026,,"NA, NO MAPPING",NA,coded/validated by K. Smith
-sbp,225309,ART BP Systolic,ART BP Systolic,,Routine Vital Signs,mmHg,Numeric,228488,,arterial,,coded/validated by K. Smith
-sbp,228152,Aortic Pressure Signal - Systolic,Aortic Pressure Signal - Systolic,,Impella,mmHg.,Numeric,8684,,"NA, NO MAPPING",NA,coded/validated by K. Smith
-sbp,224167,Manual Blood Pressure Systolic Left,Manual BPs L,,Routine Vital Signs,mmHg,Numeric,1400,,not specified,,coded/validated by K. Smith
-sbp,227243,Manual Blood Pressure Systolic Right,Manual BPs R,,Routine Vital Signs,mmHg,Numeric,1136,,not specified,,coded/validated by K. Smith
-sbp,229669,Pulmonary Atrtery Pressure Signal - Systolic,Pulmonary Artery Pressure Signal - Systolic,,Impella,mmHg.,Numeric,848,,"NA, NO MAPPING",,coded/validated by K. Smith
-dbp,220180,Non Invasive Blood Pressure diastolic,NBPd,,Routine Vital Signs,mmHg,Numeric,4066337,,not specified,,coded/validated by K. Smith
-dbp,220051,Arterial Blood Pressure diastolic,ABPd,,Routine Vital Signs,mmHg,Numeric,2263647,,arterial,,coded/validated by K. Smith
-dbp,220060,Pulmonary Artery Pressure diastolic,PAPd,,Hemodynamics,mmHg,Numeric,309126,,"NA, NO MAPPING",,coded/validated by K. Smith
-dbp,225310,ART BP Diastolic,ART BP Diastolic,,Routine Vital Signs,mmHg,Numeric,228417,,arterial,,coded/validated by K. Smith
-dbp,228151,Aortic Pressure Signal - Diastolic,Aortic Pressure Signal - Diastolic,,Impella,mmHg.,Numeric,8678,,"NA, NO MAPPING",,coded/validated by K. Smith
-dbp,224643,Manual Blood Pressure Diastolic Left,Manual BPd L,,Routine Vital Signs,mmHg,Numeric,1296,,not specified,,coded/validated by K. Smith
-dbp,227242,Manual Blood Pressure Diastolic Right,Manual BPd R,,Routine Vital Signs,mmHg,Numeric,1042,,not specified,,coded/validated by K. Smith
-dbp,229668,Pulmonary Artery Pressure Signal - Diastolic,Pulmonary Artery Pressure Signal - Diastolic,,Impella,mmHg.,Numeric,849,,"NA, NO MAPPING",,coded/validated by K. Smith
-pulse,223934,Dorsal PedPulse R,Dorsal PedPulse R,,Cardiovascular (Pulses),NaN,Text,1027492,"['Easily Palpable', 'Doppler', 'Weak Palpable', 'Strong/Palpable', 'Difficult to Palpate', 'Absent', 'Not Applicable']","NA, NO MAPPING","not heart rate, categorial mapping from weak to strong",coded/validated by K. Smith
-pulse,223943,Dorsal PedPulse L,Dorsal PedPulse L,,Cardiovascular (Pulses),NaN,Text,1013331,,"NA, NO MAPPING",,coded/validated by K. Smith
-pulse,223935,PostTib. Pulses R,PostTib Pulses R,,Cardiovascular (Pulses),NaN,Text,757423,,"NA, NO MAPPING",,coded/validated by K. Smith
-pulse,223947,PostTib. Pulses L,PostTib Pulses L,,Cardiovascular (Pulses),NaN,Text,744884,,"NA, NO MAPPING",,coded/validated by K. Smith
-pulse,223936,Radial Pulse R,Radial Pulse R,,Cardiovascular (Pulses),NaN,Text,514582,,"NA, NO MAPPING",,coded/validated by K. Smith
-pulse,223948,Radial Pulse L,Radial Pulse L,,Cardiovascular (Pulses),NaN,Text,505331,,"NA, NO MAPPING",,coded/validated by K. Smith
-pulse,223938,Ulnar Pulse R,Ulnar Pulse R,,Cardiovascular (Pulses),NaN,Text,20949,,"NA, NO MAPPING",,coded/validated by K. Smith
-pulse,223949,Ulnar Pulse L,Ulnar Pulse L,,Cardiovascular (Pulses),NaN,Text,18107,,"NA, NO MAPPING",,coded/validated by K. Smith
-pulse,223940,Femoral Pulse R,Femoral Pulse R,,Cardiovascular (Pulses),NaN,Text,13552,,"NA, NO MAPPING",,coded/validated by K. Smith
-pulse,223939,Brachial Pulse R,Brachial Pulse R,,Cardiovascular (Pulses),NaN,Text,12171,,"NA, NO MAPPING",,coded/validated by K. Smith
-pulse,223944,Brachial Pulse L,Brachial Pulse L,,Cardiovascular (Pulses),NaN,Text,11686,,"NA, NO MAPPING",,coded/validated by K. Smith
-pulse,223945,Femoral Pulse L,Femoral Pulse L,,Cardiovascular (Pulses),NaN,Text,10806,,"NA, NO MAPPING",,coded/validated by K. Smith
-pulse,223942,Graft/Flap Pulse,Graft/Flap Pulse,,Cardiovascular,NaN,Text,10106,,"NA, NO MAPPING",,coded/validated by K. Smith
-pulse,223941,Popliteal Pulse R,Popliteal Pulse R,,Cardiovascular (Pulses),NaN,Text,9394,,"NA, NO MAPPING",,coded/validated by K. Smith
-pulse,223946,Popliteal Pulse L,Popliteal Pulse L,,Cardiovascular (Pulses),NaN,Text,8762,,"NA, NO MAPPING",,coded/validated by K. Smith
-pulse,228194,Peripheral Pulses (Tandem Heart),Peripheral Pulses (Tandem Heart),,Tandem Heart,NaN,Text,5311,,"NA, NO MAPPING",,coded/validated by K. Smith
-pulse,229770,Resting Pulse Rate (COWS),Resting Pulse Rate,,Toxicology,NaN,Text,248,"['Pulse rate 80 or below', 'Pulse rate 81-100', 'Pulse rate 101-120', 'Pulse rate greater than 120']","NA, NO MAPPING",maybe,coded/validated by K. Smith
-pulse,220045,Heart Rate,HR,,Routine Vital Signs,bpm,Numeric,6460839,,not specified,,coded/validated by K. Smith
-pulse,220048,Heart Rhythm,Heart Rhythm,,Routine Vital Signs,NaN,Text,5907987,"SR (Sinus Rhythm)', 'ST (Sinus Tachycardia) ', 'AF (Atrial Fibrillation)', 'SB (Sinus Bradycardia)', 'V Paced', '1st AV (First degree AV Block) ', 'A Paced', 'AV Paced', ......","NA, NO MAPPING",,coded/validated by K. Smith
-spo2,220277,O2 saturation pulseoxymetry,SpO2,,Respiratory,%,Numeric,6324341,,not specified,maybe,coded/validated by K. Smith
-spo2,223770,O2 Saturation Pulseoxymetry Alarm - Low,SpO2 Alarm - Low,,Alarms,%,Numeric,622764,,"NA, NO MAPPING",,coded/validated by K. Smith
-spo2,223769,O2 Saturation Pulseoxymetry Alarm - High,SpO2 Alarm - High,,Alarms,%,Numeric,619601,,"NA, NO MAPPING",,coded/validated by K. Smith
-spo2,226253,SpO2 Desat Limit,SpO2 Desat Limit,,Alarms,%,Numeric,600821,,"NA, NO MAPPING",,coded/validated by K. Smith
-spo2,229862,Forehead SpO2 Sensor in Place,Forehead SpO2 Sensor in Place,,Routine Vital Signs,NaN,Checkbox,35,,"NA, NO MAPPING",binary,coded/validated by K. Smith
-respiratory_rate,220210,Respiratory Rate,RR,,Respiratory,insp/min,Numeric,6393762,"Max: 2355560.0, Min: 0.0, Mean: 20.459964592066456",not specified,"only this kept in vitals, others to resp_support",coded/validated by K. Smith
-respiratory_rate,224689,Respiratory Rate (spontaneous),Respiratory Rate (spontaneous),,Respiratory,insp/min,Numeric,592180,"Max: 2843.0, Min: 0.0, Mean: 11.168484317268398","SPECIAL CASE, TBD",may be necessary based on what is present in ventilator settings data,to be further discussed
-respiratory_rate,224690,Respiratory Rate (Total),Respiratory Rate (Total),,Respiratory,insp/min,Numeric,550398,"Max: 3634.0, Min: -1.0, Mean: 21.138933571706293","SPECIAL CASE, TBD","""= observed = spon + set"" ",to be further discussed
-respiratory_rate,224688,Respiratory Rate (Set),Respiratory Rate (Set),,Respiratory,insp/min,Numeric,342289,"Max: 1618.0, Min: -25.0, Mean: 18.738991028049398","SPECIAL CASE, TBD",may be necessary based on what is present in ventilator settings data,to be further discussed
-temp_c,224642,Temperature Site,Temp Site,chartevents,Routine Vital Signs,NaN,Text,1842387,"['Oral', 'Blood', 'Axillary', 'Rectal', 'Esophogeal', 'Temporal', 'Tympanic']","SPECIAL CASE, TBD","Rectal', 'Esophogeal', Tympanic => core
-Blood => ?",to be further discussed
-temp_c,223761,Temperature Fahrenheit,Temperature F,chartevents,Routine Vital Signs,°F,Numeric,1515962,,"SPECIAL CASE, TBD","i'm thinking maybe we should convert all F to C, and keep all the non-repeating ones -- Zewei (Whiskey) Liao",coded/validated by K. Smith
-temp_c,224027,Skin Temperature,Skin Temp,,Skin - Assessment,NaN,Text,952619,"['Warm', 'Cool', 'Hot', 'Cold']","NA, NO MAPPING",,coded/validated by K. Smith
-temp_c,223762,Temperature Celsius,Temperature C,chartevents,Routine Vital Signs,°C,Numeric,264628,,not specified,,coded/validated by K. Smith
-temp_c,226329,Blood Temperature CCO (C),Blood Temp CCO (C),,Routine Vital Signs,°C,Numeric,151805,,"NA, NO MAPPING",,coded/validated by K. Smith
-temp_c,229236,Cerebral Temperature (C),Cerebral T (C),,Hemodynamics,°C,Numeric,2469,,"NA, NO MAPPING",,coded/validated by K. Smith
-map,224322,IABP Mean,MAP - Assisted,,IABP,mmHg,Numeric,31605,"Max: 701.0, Min: 0.0, Mean: 80.09","NA, NO MAPPING",,coded/validated by K. Smith
-map,226766,MapApacheIIValue,MapApacheIIValue,,Scores - APACHE II,mmHg,Numeric,18,"Max: 124.0, Min: 25.0, Mean: 62.61","NA, NO MAPPING",,coded/validated by K. Smith
-map,227023,MAP_ApacheIV,MAP_ApacheIV,,Scores - APACHE IV (2),mmHg,Numeric,7,"Max: 122.0, Min: 54.0, Mean: 73.86","NA, NO MAPPING",,coded/validated by K. Smith
-map,220181,Non Invasive Blood Pressure mean,NBPm,,Routine Vital Signs,mmHg,Numeric,4064537,"Max: 8888890.0, Min: -22767.0, Mean: 84.59",not specified,,coded/validated by K. Smith
-map,220052,Arterial Blood Pressure mean,ABPm,,Routine Vital Signs,mmHg,Numeric,2272013,"Max: 930000.0, Min: -135.0, Mean: 80.14",arterial,,coded/validated by K. Smith
-map,225312,ART BP Mean,ART BP Mean,,Routine Vital Signs,mmHg,Numeric,230147,"Max: 8366.0, Min: -41.0, Mean: 77.91",arterial,is this the same as 220052 (the previous item)? two essentially idential items under different names?,coded/validated by K. Smith
+vital_category,meas_site_name,itemid,label = vital_name,abbreviation,linksto,category,unitname,param_type,count,value_instances,note / comment,status
+sbp,not specified,220179,Non Invasive Blood Pressure systolic,NBPs,,Routine Vital Signs,mmHg,Numeric,4067219,,,coded/validated by K. Smith
+sbp,arterial,220050,Arterial Blood Pressure systolic,ABPs,,Routine Vital Signs,mmHg,Numeric,2264001,,,coded/validated by K. Smith
+sbp,NO MAPPING,220059,Pulmonary Artery Pressure systolic,PAPs,,Hemodynamics,mmHg,Numeric,309026,,NA,coded/validated by K. Smith
+sbp,arterial,225309,ART BP Systolic,ART BP Systolic,,Routine Vital Signs,mmHg,Numeric,228488,,,coded/validated by K. Smith
+sbp,NO MAPPING,228152,Aortic Pressure Signal - Systolic,Aortic Pressure Signal - Systolic,,Impella,mmHg.,Numeric,8684,,NA,coded/validated by K. Smith
+sbp,not specified,224167,Manual Blood Pressure Systolic Left,Manual BPs L,,Routine Vital Signs,mmHg,Numeric,1400,,,coded/validated by K. Smith
+sbp,not specified,227243,Manual Blood Pressure Systolic Right,Manual BPs R,,Routine Vital Signs,mmHg,Numeric,1136,,,coded/validated by K. Smith
+sbp,NO MAPPING,229669,Pulmonary Atrtery Pressure Signal - Systolic,Pulmonary Artery Pressure Signal - Systolic,,Impella,mmHg.,Numeric,848,,,coded/validated by K. Smith
+dbp,not specified,220180,Non Invasive Blood Pressure diastolic,NBPd,,Routine Vital Signs,mmHg,Numeric,4066337,,,coded/validated by K. Smith
+dbp,arterial,220051,Arterial Blood Pressure diastolic,ABPd,,Routine Vital Signs,mmHg,Numeric,2263647,,,coded/validated by K. Smith
+dbp,NO MAPPING,220060,Pulmonary Artery Pressure diastolic,PAPd,,Hemodynamics,mmHg,Numeric,309126,,,coded/validated by K. Smith
+dbp,arterial,225310,ART BP Diastolic,ART BP Diastolic,,Routine Vital Signs,mmHg,Numeric,228417,,,coded/validated by K. Smith
+dbp,NO MAPPING,228151,Aortic Pressure Signal - Diastolic,Aortic Pressure Signal - Diastolic,,Impella,mmHg.,Numeric,8678,,,coded/validated by K. Smith
+dbp,not specified,224643,Manual Blood Pressure Diastolic Left,Manual BPd L,,Routine Vital Signs,mmHg,Numeric,1296,,,coded/validated by K. Smith
+dbp,not specified,227242,Manual Blood Pressure Diastolic Right,Manual BPd R,,Routine Vital Signs,mmHg,Numeric,1042,,,coded/validated by K. Smith
+dbp,NO MAPPING,229668,Pulmonary Artery Pressure Signal - Diastolic,Pulmonary Artery Pressure Signal - Diastolic,,Impella,mmHg.,Numeric,849,,,coded/validated by K. Smith
+pulse,NO MAPPING,223934,Dorsal PedPulse R,Dorsal PedPulse R,,Cardiovascular (Pulses),NaN,Text,1027492,"['Easily Palpable', 'Doppler', 'Weak Palpable', 'Strong/Palpable', 'Difficult to Palpate', 'Absent', 'Not Applicable']","not heart rate, categorial mapping from weak to strong",coded/validated by K. Smith
+pulse,NO MAPPING,223943,Dorsal PedPulse L,Dorsal PedPulse L,,Cardiovascular (Pulses),NaN,Text,1013331,,,coded/validated by K. Smith
+pulse,NO MAPPING,223935,PostTib. Pulses R,PostTib Pulses R,,Cardiovascular (Pulses),NaN,Text,757423,,,coded/validated by K. Smith
+pulse,NO MAPPING,223947,PostTib. Pulses L,PostTib Pulses L,,Cardiovascular (Pulses),NaN,Text,744884,,,coded/validated by K. Smith
+pulse,NO MAPPING,223936,Radial Pulse R,Radial Pulse R,,Cardiovascular (Pulses),NaN,Text,514582,,,coded/validated by K. Smith
+pulse,NO MAPPING,223948,Radial Pulse L,Radial Pulse L,,Cardiovascular (Pulses),NaN,Text,505331,,,coded/validated by K. Smith
+pulse,NO MAPPING,223938,Ulnar Pulse R,Ulnar Pulse R,,Cardiovascular (Pulses),NaN,Text,20949,,,coded/validated by K. Smith
+pulse,NO MAPPING,223949,Ulnar Pulse L,Ulnar Pulse L,,Cardiovascular (Pulses),NaN,Text,18107,,,coded/validated by K. Smith
+pulse,NO MAPPING,223940,Femoral Pulse R,Femoral Pulse R,,Cardiovascular (Pulses),NaN,Text,13552,,,coded/validated by K. Smith
+pulse,NO MAPPING,223939,Brachial Pulse R,Brachial Pulse R,,Cardiovascular (Pulses),NaN,Text,12171,,,coded/validated by K. Smith
+pulse,NO MAPPING,223944,Brachial Pulse L,Brachial Pulse L,,Cardiovascular (Pulses),NaN,Text,11686,,,coded/validated by K. Smith
+pulse,NO MAPPING,223945,Femoral Pulse L,Femoral Pulse L,,Cardiovascular (Pulses),NaN,Text,10806,,,coded/validated by K. Smith
+pulse,NO MAPPING,223942,Graft/Flap Pulse,Graft/Flap Pulse,,Cardiovascular,NaN,Text,10106,,,coded/validated by K. Smith
+pulse,NO MAPPING,223941,Popliteal Pulse R,Popliteal Pulse R,,Cardiovascular (Pulses),NaN,Text,9394,,,coded/validated by K. Smith
+pulse,NO MAPPING,223946,Popliteal Pulse L,Popliteal Pulse L,,Cardiovascular (Pulses),NaN,Text,8762,,,coded/validated by K. Smith
+pulse,NO MAPPING,228194,Peripheral Pulses (Tandem Heart),Peripheral Pulses (Tandem Heart),,Tandem Heart,NaN,Text,5311,,,coded/validated by K. Smith
+pulse,NO MAPPING,229770,Resting Pulse Rate (COWS),Resting Pulse Rate,,Toxicology,NaN,Text,248,"['Pulse rate 80 or below', 'Pulse rate 81-100', 'Pulse rate 101-120', 'Pulse rate greater than 120']",maybe,coded/validated by K. Smith
+pulse,not specified,220045,Heart Rate,HR,,Routine Vital Signs,bpm,Numeric,6460839,,,coded/validated by K. Smith
+pulse,NO MAPPING,220048,Heart Rhythm,Heart Rhythm,,Routine Vital Signs,NaN,Text,5907987,"SR (Sinus Rhythm)', 'ST (Sinus Tachycardia) ', 'AF (Atrial Fibrillation)', 'SB (Sinus Bradycardia)', 'V Paced', '1st AV (First degree AV Block) ', 'A Paced', 'AV Paced', ......",,coded/validated by K. Smith
+spo2,not specified,220277,O2 saturation pulseoxymetry,SpO2,,Respiratory,%,Numeric,6324341,,maybe,coded/validated by K. Smith
+spo2,NO MAPPING,223770,O2 Saturation Pulseoxymetry Alarm - Low,SpO2 Alarm - Low,,Alarms,%,Numeric,622764,,,coded/validated by K. Smith
+spo2,NO MAPPING,223769,O2 Saturation Pulseoxymetry Alarm - High,SpO2 Alarm - High,,Alarms,%,Numeric,619601,,,coded/validated by K. Smith
+spo2,NO MAPPING,226253,SpO2 Desat Limit,SpO2 Desat Limit,,Alarms,%,Numeric,600821,,,coded/validated by K. Smith
+spo2,NO MAPPING,229862,Forehead SpO2 Sensor in Place,Forehead SpO2 Sensor in Place,,Routine Vital Signs,NaN,Checkbox,35,,binary,coded/validated by K. Smith
+respiratory_rate,not specified,220210,Respiratory Rate,RR,,Respiratory,insp/min,Numeric,6393762,"Max: 2355560.0, Min: 0.0, Mean: 20.459964592066456","only this kept in vitals, others to resp_support",coded/validated by K. Smith
+respiratory_rate,MAPPED ELSEWHERE,224689,Respiratory Rate (spontaneous),Respiratory Rate (spontaneous),,Respiratory,insp/min,Numeric,592180,"Max: 2843.0, Min: 0.0, Mean: 11.168484317268398",may be necessary based on what is present in ventilator settings data,analytical decision made
+respiratory_rate,MAPPED ELSEWHERE,224690,Respiratory Rate (Total),Respiratory Rate (Total),,Respiratory,insp/min,Numeric,550398,"Max: 3634.0, Min: -1.0, Mean: 21.138933571706293","""= observed = spon + set"" ",analytical decision made
+respiratory_rate,MAPPED ELSEWHERE,224688,Respiratory Rate (Set),Respiratory Rate (Set),,Respiratory,insp/min,Numeric,342289,"Max: 1618.0, Min: -25.0, Mean: 18.738991028049398",may be necessary based on what is present in ventilator settings data,analytical decision made
+temp_c,SPECIAL CASE,224642,Temperature Site,Temp Site,chartevents,Routine Vital Signs,NaN,Text,1842387,"{'Oral': 1278499, 'Blood': 269153, 'Axillary': 157738, 'Rectal': 50577, 'Esophogeal': 43733, 'Temporal': 39990, 'Tympanic': 2697}","Rectal', 'Esophogeal', Tympanic => core
+Blood => ""not specified""",analytical decision made
+temp_c,SPECIAL CASE,223761,Temperature Fahrenheit,Temperature F,chartevents,Routine Vital Signs,°F,Numeric,1515962,,"i'm thinking maybe we should convert all F to C, and keep all the non-repeating ones -- Zewei (Whiskey) Liao",coded/validated by K. Smith
+temp_c,NO MAPPING,224027,Skin Temperature,Skin Temp,,Skin - Assessment,NaN,Text,952619,"['Warm', 'Cool', 'Hot', 'Cold']",,coded/validated by K. Smith
+temp_c,SPECIAL CASE,223762,Temperature Celsius,Temperature C,chartevents,Routine Vital Signs,°C,Numeric,264628,,,coded/validated by K. Smith
+temp_c,NO MAPPING,226329,Blood Temperature CCO (C),Blood Temp CCO (C),,Routine Vital Signs,°C,Numeric,151805,,,coded/validated by K. Smith
+temp_c,NO MAPPING,229236,Cerebral Temperature (C),Cerebral T (C),,Hemodynamics,°C,Numeric,2469,,,coded/validated by K. Smith
+map,NO MAPPING,224322,IABP Mean,MAP - Assisted,,IABP,mmHg,Numeric,31605,"Max: 701.0, Min: 0.0, Mean: 80.09",,coded/validated by K. Smith
+map,NO MAPPING,226766,MapApacheIIValue,MapApacheIIValue,,Scores - APACHE II,mmHg,Numeric,18,"Max: 124.0, Min: 25.0, Mean: 62.61",,coded/validated by K. Smith
+map,NO MAPPING,227023,MAP_ApacheIV,MAP_ApacheIV,,Scores - APACHE IV (2),mmHg,Numeric,7,"Max: 122.0, Min: 54.0, Mean: 73.86",,coded/validated by K. Smith
+map,not specified,220181,Non Invasive Blood Pressure mean,NBPm,,Routine Vital Signs,mmHg,Numeric,4064537,"Max: 8888890.0, Min: -22767.0, Mean: 84.59",,coded/validated by K. Smith
+map,arterial,220052,Arterial Blood Pressure mean,ABPm,,Routine Vital Signs,mmHg,Numeric,2272013,"Max: 930000.0, Min: -135.0, Mean: 80.14",,coded/validated by K. Smith
+map,arterial,225312,ART BP Mean,ART BP Mean,,Routine Vital Signs,mmHg,Numeric,230147,"Max: 8366.0, Min: -41.0, Mean: 77.91",is this the same as 220052 (the previous item)? two essentially idential items under different names?,coded/validated by K. Smith
