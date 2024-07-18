@@ -2,6 +2,7 @@
 mimic-iv-2.2/
 moukheiber-respiratory-support-dataset/
 rclif/
+clif-tables/
 
 # Mac system file
 *.DS_Store
