@@ -7,7 +7,7 @@ itemid,label,mode_name,count,mode_category,coherence,status,note,,device_categor
 
 Yes, but could represent the time when mechanical ventilation was stopped... may be helpful for measuring how long someone was ventilated for?",,SIMV,10
 223849,Ventilator Mode,PSV/SBT,8550,Pressure Support/CPAP,,coded/validated by K. Smith,,,Blow by,1
-223849,Ventilator Mode,PRVC/AC,5029,Pressure-Regulated Volume Control,,coded/validated by K. Smith,,,Other,13
+223849,Ventilator Mode,PRVC/AC,5029,Pressure-Regulated Volume Control,,coded/validated by K. Smith,,,Other,17
 223849,Ventilator Mode,PCV+Assist,4152,Pressure Control,,coded/validated by K. Smith,,,,
 223849,Ventilator Mode,CPAP/PSV+ApnVol,3410,Pressure-Regulated Volume Control,,coded/validated by K. Smith,,,,
 223849,Ventilator Mode,SIMV/PSV/AutoFlow,1947,SIMV,,coded/validated by K. Smith,,,,
@@ -56,5 +56,10 @@ Yes, but could represent the time when mechanical ventilation was stopped... may
 229314,Ventilator Mode (Hamilton),P-SIMV,12,SIMV,,coded/validated by K. Smith,,,,
 229314,Ventilator Mode (Hamilton),DuoPaP,4,Pressure Support/CPAP,,coded/validated by K. Smith,,,,
 229314,Ventilator Mode (Hamilton),nCPAP-PS,1,Pressure Support/CPAP,,coded/validated by K. Smith,,,,
+227577,BiPap Mode,Spontaneous (S),9733,Other,based on mCIDE mapping,,,,,
+227577,BiPap Mode,Spontaneous/Timed (S/T) (Back up),731,Other,based on mCIDE mapping,,,,,
+227577,BiPap Mode,Not applicable,169,Other,based on mCIDE mapping,,,,,
+227577,BiPap Mode,Timed (T),15,Other,based on mCIDE mapping,,,,,
+,,,,,,,,,,
 ,,,,,,,,,,
 Reference: https://github.com/kaveriC/CLIF-1.0/blob/main/mCIDE/clif_vocab_respiratory_support_modes.csv,,,,,,,,,,
