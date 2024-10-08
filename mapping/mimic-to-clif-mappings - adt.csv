@@ -1,0 +1,40 @@
+careunit,count,location_category,status
+Emergency Department,625907,ER,existing mapping validated by K. Smith
+Medicine,149709,Ward,existing mapping validated by K. Smith
+Emergency Department Observation,80909,ER,existing mapping validated by K. Smith
+Discharge Lounge,52950,Other,existing mapping validated by K. Smith
+Med/Surg,47581,Ward,existing mapping validated by K. Smith
+Medicine/Cardiology,44014,Ward,existing mapping validated by K. Smith
+Neurology,39126,Ward,existing mapping validated by K. Smith
+Hematology/Oncology,35542,Ward,existing mapping validated by K. Smith
+Vascular,30939,Ward,existing mapping validated by K. Smith
+Transplant,29963,Ward,existing mapping validated by K. Smith
+Med/Surg/GYN,26521,Ward,wrong mapping corrected by K. Smith
+Med/Surg/Trauma,23329,Ward,wrong mapping corrected by K. Smith
+PACU,23237,Other,wrong mapping corrected by K. Smith
+Labor & Delivery,21731,Other,existing mapping validated by K. Smith
+Medical Intensive Care Unit (MICU),21187,ICU,existing mapping validated by K. Smith
+Cardiac Surgery,17211,Ward,wrong mapping corrected by K. Smith
+Surgery/Trauma,16811,Ward,wrong mapping corrected by K. Smith
+Medical/Surgical Intensive Care Unit (MICU/SICU),16198,ICU,existing mapping validated by K. Smith
+Cardiac Vascular Intensive Care Unit (CVICU),16158,ICU,existing mapping validated by K. Smith
+Obstetrics (Postpartum & Antepartum),15927,Ward,existing mapping validated by K. Smith
+Surgical Intensive Care Unit (SICU),14502,ICU,existing mapping validated by K. Smith
+Psychiatry,13193,Other,existing mapping validated by K. Smith
+Trauma SICU (TSICU),11697,ICU,existing mapping validated by K. Smith
+Hematology/Oncology Intermediate,11494,Ward,existing mapping validated by K. Smith
+Coronary Care Unit (CCU),10796,ICU,existing mapping validated by K. Smith
+Medical/Surgical (Gynecology),9653,Ward,existing mapping validated by K. Smith
+Surgery,9344,Ward,wrong mapping corrected by K. Smith
+Surgery/Pancreatic/Biliary/Bariatric,8610,Ward,wrong mapping corrected by K. Smith
+Medicine/Cardiology Intermediate,7118,Ward,existing mapping validated by K. Smith
+Cardiology Surgery Intermediate,4500,Ward,wrong mapping corrected by K. Smith
+Observation,4386,Other,existing mapping validated by K. Smith
+Obstetrics Postpartum,4300,Ward,existing mapping validated by K. Smith
+Neuro Intermediate,3842,Ward,existing mapping validated by K. Smith
+Thoracic Surgery,3128,Ward,wrong mapping corrected by K. Smith
+Cardiology,2381,Ward,existing mapping validated by K. Smith
+Neuro Surgical Intensive Care Unit (Neuro SICU),2358,ICU,existing mapping validated by K. Smith
+Neuro Stepdown,1899,Ward,existing mapping validated by K. Smith
+Obstetrics Antepartum,1446,Ward,existing mapping validated by K. Smith
+Unknown,144,Other,existing mapping validated by K. Smith
