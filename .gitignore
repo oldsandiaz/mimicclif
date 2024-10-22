@@ -4,6 +4,9 @@ moukheiber-respiratory-support-dataset/
 rclif/
 clif-tables/
 
+# vscode setting
+.vscode
+
 # Mac system file
 *.DS_Store
 gmon.out

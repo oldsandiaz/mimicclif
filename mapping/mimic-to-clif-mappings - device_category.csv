@@ -1,21 +1,33 @@
-itemid,label,device_name,count,device_category,coherence,status,,device_category,count
-226732,O2 Delivery Device(s),Endotracheal tube,467931,Vent,based on mCIDE mapping,coded/validated by K. Smith,,Room Air,0
-226732,O2 Delivery Device(s),Nasal cannula,417453,Nasal Cannula,based on mCIDE mapping,coded/validated by K. Smith,,Nasal Cannula,1
-226732,O2 Delivery Device(s),Tracheostomy tube,90713,Vent,not covered by mCIDE mapping,coded/validated by K. Smith,,Vent,3
-226732,O2 Delivery Device(s),Aerosol-cool,68754,Other,based on mCIDE mapping,coded/validated by K. Smith,,NIPPV,1
-226732,O2 Delivery Device(s),Face tent,60388,Face Mask,based on mCIDE mapping,coded/validated by K. Smith,,Face Mask,5
-226732,O2 Delivery Device(s),Trach mask,50917,Trach Collar,based on mCIDE mapping,coded/validated by K. Smith,,High Flow NC,1
-226732,O2 Delivery Device(s),High flow nasal cannula,23248,High Flow NC,based on mCIDE mapping,coded/validated by K. Smith,,Trach Collar,1
-226732,O2 Delivery Device(s),Bipap mask,19004,NIPPV,based on mCIDE mapping,coded/validated by K. Smith,,Other,5
-226732,O2 Delivery Device(s),High flow neb,17651,Other,not covered by mCIDE mapping,coded/validated by K. Smith,,CPAP,1
-226732,O2 Delivery Device(s),Non-rebreather,10898,Face Mask,based on mCIDE mapping,coded/validated by K. Smith,,NO MAPPING,0
-226732,O2 Delivery Device(s),CPAP mask,8529,CPAP,based on mCIDE mapping,coded/validated by K. Smith,,,
-226732,O2 Delivery Device(s),Venti mask,5144,Face Mask,not covered by mCIDE mapping,coded/validated by K. Smith,,,
-226732,O2 Delivery Device(s),Other,4550,Other,based on mCIDE mapping,coded/validated by K. Smith,,,
-226732,O2 Delivery Device(s),Medium conc mask,4421,Face Mask,not covered by mCIDE mapping,coded/validated by K. Smith,,,
-226732,O2 Delivery Device(s),Oxymizer,4117,Face Mask,based on mCIDE mapping,coded/validated by K. Smith,,,
-226732,O2 Delivery Device(s),T-piece,3441,Vent,based on mCIDE mapping,coded/validated by K. Smith,,,
-226732,O2 Delivery Device(s),Ultrasonic neb,27,Other,not covered by mCIDE mapping,coded/validated by K. Smith,,,
-226732,O2 Delivery Device(s),Vapomist,15,Other,not covered by mCIDE mapping,coded/validated by K. Smith,,,
-,,,,,,,,,
-Reference: https://github.com/kaveriC/CLIF-1.0/blob/main/mCIDE/clif_vocab_respiratory_support_devices.csv ,,,,,,,,,
+itemid,label,device_name,count,device_category,coherence,status,note,,device_category,count
+226732,O2 Delivery Device(s),Endotracheal tube,467931,IMV,based on mCIDE mapping,coded/validated by K. Smith,,,IMV,3
+226732,O2 Delivery Device(s),Nasal cannula,417453,Nasal Cannula,based on mCIDE mapping,coded/validated by K. Smith,,,NIPPV,1
+226732,O2 Delivery Device(s),Tracheostomy tube,90713,IMV,not covered by mCIDE mapping,coded/validated by K. Smith,,,CPAP,1
+226732,O2 Delivery Device(s),Aerosol-cool,68754,Face Mask,based on mCIDE mapping,to be further discussed,"previously ""other""; should check co-occurance with anything; can adapt the R script",,High Flow NC,2
+226732,O2 Delivery Device(s),Face tent,60388,Face Mask,based on mCIDE mapping,coded/validated by K. Smith,,,Face Mask,6
+226732,O2 Delivery Device(s),Trach mask,50917,Trach Collar,based on mCIDE mapping,coded/validated by K. Smith,,,Trach Collar,1
+226732,O2 Delivery Device(s),High flow nasal cannula,23248,High Flow NC,based on mCIDE mapping,coded/validated by K. Smith,,,Nasal Cannula,1
+226732,O2 Delivery Device(s),Bipap mask,19004,NIPPV,based on mCIDE mapping,coded/validated by K. Smith,,,Room Air,0
+226732,O2 Delivery Device(s),High flow neb,17651,High Flow NC,not covered by mCIDE mapping,to be further discussed,"previously ""other""; should check co-occurance with HFNC; can adapt the R script",,Other,3
+226732,O2 Delivery Device(s),Non-rebreather,10898,Face Mask,based on mCIDE mapping,coded/validated by K. Smith,,,NO MAPPING,0
+226732,O2 Delivery Device(s),CPAP mask,8529,CPAP,based on mCIDE mapping,coded/validated by K. Smith,,,,
+226732,O2 Delivery Device(s),Venti mask,5144,Face Mask,not covered by mCIDE mapping,coded/validated by K. Smith,,,,
+226732,O2 Delivery Device(s),Other,4550,Other,based on mCIDE mapping,coded/validated by K. Smith,,,,
+226732,O2 Delivery Device(s),Medium conc mask,4421,Face Mask,not covered by mCIDE mapping,coded/validated by K. Smith,,,,
+226732,O2 Delivery Device(s),Oxymizer,4117,Face Mask,based on mCIDE mapping,coded/validated by K. Smith,,,,
+226732,O2 Delivery Device(s),T-piece,3441,IMV,based on mCIDE mapping,coded/validated by K. Smith,,,,
+226732,O2 Delivery Device(s),Ultrasonic neb,27,Other,not covered by mCIDE mapping,coded/validated by K. Smith,,,,
+226732,O2 Delivery Device(s),Vapomist,15,Other,not covered by mCIDE mapping,coded/validated by K. Smith,,,,
+223848,Ventilator Type,Drager,368975,SPECIAL CASE,,,we are not mapping 223848 Ventilator Type in general. These mappings here are just kept for reference.,,,
+223848,Ventilator Type,Hamilton,195138,SPECIAL CASE,,,,,,
+223848,Ventilator Type,Avea,6431,IMV,,,,,,
+223848,Ventilator Type,Other,1217,SPECIAL CASE,,,,,,
+223848,Ventilator Type,BiPAP/CPAP,180,NIPPV,,,,,,
+223848,Ventilator Type,Respironics BiPAP,10,NIPPV,,,,,,
+223848,Ventilator Type,Sensor Medic (HFO),9,IMV,,,,,,
+223848,Ventilator Type,PB 7200,4,IMV,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+Reference: https://github.com/kaveriC/CLIF-1.0/blob/main/mCIDE/clif_vocab_respiratory_support_devices.csv ,,,,,,,,,,
