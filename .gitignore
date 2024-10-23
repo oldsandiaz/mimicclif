@@ -1,8 +1,11 @@
 # data
-mimic-iv-2.2/
+mimic-data/
 moukheiber-respiratory-support-dataset/
 rclif/
 clif-tables/
+
+# wget logging
+wget-log
 
 # vscode setting
 .vscode
