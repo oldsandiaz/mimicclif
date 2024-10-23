@@ -3,6 +3,7 @@ mimic-data/
 moukheiber-respiratory-support-dataset/
 rclif/
 clif-tables/
+rclif-1.0/
 
 # wget logging
 wget-log
