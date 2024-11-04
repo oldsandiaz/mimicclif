@@ -9,12 +9,12 @@ albumin,NO MAPPING,51897,Surfactant/Albumin,,Other Body Fluid,Chemistry,36,"Max:
 albumin,NO MAPPING,51776,<Albumin>,,Cerebrospinal Fluid,Chemistry,36,"Max: 643.3, Min: 0.0, Mean: 53.01",{'mg/dL': 36},,existing mapping validated by K. Smith,
 albumin,NO MAPPING,51019,"Albumin, Joint Fluid",,Joint Fluid,Chemistry,9,"Max: 3.5, Min: 1.5, Mean: 2.51",{'g/dL': 9},,existing mapping validated by K. Smith,
 albumin,NO MAPPING,51927,"Albumin, Stool",,Stool,Chemistry,1,"Max: nan, Min: nan, Mean: nan",{'g/dL': 1},,existing mapping validated by K. Smith,
-alkaline_phosphatase,"TO MAP, CONVERT UOM",50863,Alkaline Phosphatase,,Blood,Chemistry,1171421,"Max: 5965.0, Min: 0.0, Mean: 127.84",{'IU/L': 1171421},U/L,existing mapping validated by K. Smith,
+alkaline_phosphatase,"TO MAP, AS IS",50863,Alkaline Phosphatase,,Blood,Chemistry,1171421,"Max: 5965.0, Min: 0.0, Mean: 127.84",{'IU/L': 1171421},U/L,existing mapping validated by K. Smith,
 alkaline_phosphatase,NO MAPPING,51241,Leukocyte Alkaline Phosphatase,,Blood,Hematology,48,"Max: 378.0, Min: 0.0, Mean: 152.22",{'Score': 48},,existing mapping validated by K. Smith,
-alt,"TO MAP, CONVERT UOM",50861,Alanine Aminotransferase (ALT),,Blood,Chemistry,1348729,"Max: 61854.0, Min: 0.0, Mean: 63.63",{'IU/L': 1348729},U/L,existing mapping validated by K. Smith,
-ast,"TO MAP, CONVERT UOM",50878,Asparate Aminotransferase (AST),,Blood,Chemistry,1321132,"Max: 42606.0, Min: 0.0, Mean: 71.93",{'IU/L': 1321132},U/L,existing mapping validated by K. Smith,
+alt,"TO MAP, AS IS",50861,Alanine Aminotransferase (ALT),,Blood,Chemistry,1348729,"Max: 61854.0, Min: 0.0, Mean: 63.63",{'IU/L': 1348729},U/L,existing mapping validated by K. Smith,
+ast,"TO MAP, AS IS",50878,Asparate Aminotransferase (AST),,Blood,Chemistry,1321132,"Max: 42606.0, Min: 0.0, Mean: 71.93",{'IU/L': 1321132},U/L,existing mapping validated by K. Smith,
 basophils_percent,"TO MAP, AS IS",51146,Basophils,,Blood,Hematology,1241587,"Max: 63.0, Min: 0.0, Mean: 0.51",{'%': 1241587},%,new mapping created by K. Smith,
-basophils_absolute,"TO MAP, CONVERT UOM",52069,Absolute Basophil Count,,Blood,Hematology,518272,"Max: 31.9, Min: 0.0, Mean: 0.04",{'K/uL': 518271},10^3/µL,new and to be confirmed,
+basophils_absolute,"TO MAP, AS IS",52069,Absolute Basophil Count,,Blood,Hematology,518272,"Max: 31.9, Min: 0.0, Mean: 0.04",{'K/uL': 518271},10^3/µL,new and to be confirmed,
 basophils_absolute,NO MAPPING,51145,Basophilic Stippling,,Blood,Hematology,13450,"Max: 0.0, Min: 0.0, Mean: 0.0",{},%,new mapping created by K. Smith,
 basophil,NO MAPPING,51442,Basophils,,Pleural,Hematology,458,"Max: 8.0, Min: 0.0, Mean: 1.48",{'%': 458},%,new mapping created by K. Smith,
 basophil,NO MAPPING,51112,Basophils,,Ascites,Hematology,334,"Max: 10.0, Min: 0.0, Mean: 1.27",{'%': 334},%,new mapping created by K. Smith,
@@ -42,13 +42,15 @@ calcium_total,NO MAPPING,51077,"Calcium, Urine",,Urine,Chemistry,4493,"Max: 76.8
 calcium_total,NO MAPPING,51066,24 hr Calcium,,Urine,Chemistry,2011,"Max: 1143.0, Min: 0.0, Mean: 176.14",{'mg/24hr': 2011},mg/dL,new mapping created by K. Smith,
 calcium_ionized,"TO MAP, CONVERT UOM",51624,Free Calcium,,Blood,Chemistry,368,"Max: 1.53, Min: 0.81, Mean: 1.15",{'mmol/L': 368},mg/dL,issue reported and resolved,CLIF should include ionized (free) calcium - we should bring this up with the group
 calcium_total,NO MAPPING,51029,"Calcium, Body Fluid",,Other Body Fluid,Chemistry,10,"Max: 9.9, Min: 2.9, Mean: 6.91",{'mg/dL': 10},mg/dL,new mapping created by K. Smith,
-carbon_dioxide,"TO MAP, CONVERT UOM",50804,Calculated Total CO2,,Blood,Blood Gas,511828,"Max: 270.0, Min: 0.0, Mean: 25.87",{'mEq/L': 511828},mmol/L,new mapping created by K. Smith,https://github.com/clif-consortium/CLIF/issues/31
-carbon_dioxide,"TO MAP, CONVERT UOM",51739,Total CO2,,Blood,Chemistry,367,"Max: 33.0, Min: 16.0, Mean: 24.14",{'mEq/L': 367},mmol/L,new mapping created by K. Smith,
-carbon_dioxide,"TO MAP, CONVERT UOM",225698,TCO2 (calc) Arterial,TCO2 (calc) Arterial,chartevents,Labs,305406,"Max: 999999.0, Min: -2.0, Mean: 104.07",None,mmol/L,report to the group,double check the unit?
-carbon_dioxide,NO MAPPING,228640,EtCO2,EtCO2,chartevents,Routine Vital Signs,87595,"Max: 2950460.0, Min: -62.0, Mean: 95.38",None,mmol/L,existing mapping validated by K. Smith,
-carbon_dioxide,"TO MAP, CONVERT UOM",223679,TCO2 (calc) Venous,TCO2 (calc) Venous,chartevents,Labs,47329,"Max: 999999.0, Min: 0.0, Mean: 196.25",None,mmol/L,report to the group,
-carbon_dioxide,NO MAPPING,220245,CO2 production,CO2 production,chartevents,Respiratory,45631,"Max: 1104.0, Min: 0.0, Mean: 192.43",ml/min,mmol/L,existing mapping validated by K. Smith,
-carbon_dioxide,NO MAPPING,228878,PeCO2,PeCO2,chartevents,Respiratory,1917,"Max: 430.0, Min: -3.0, Mean: 33.91",mmHg,mmol/L,existing mapping validated by K. Smith,
+bicarbonate,NO MAPPING,50804,Calculated Total CO2,,Blood,Blood Gas,511828,"Max: 270.0, Min: 0.0, Mean: 25.87",{'mEq/L': 511828},mmol/L,new and to be confirmed,https://github.com/clif-consortium/CLIF/issues/31
+bicarbonate,"TO MAP, CONVERT UOM",51739,Total CO2,,Blood,Chemistry,367,"Max: 33.0, Min: 16.0, Mean: 24.14",{'mEq/L': 367},mmol/L,new and to be confirmed,
+bicarbonate,NO MAPPING,225698,TCO2 (calc) Arterial,TCO2 (calc) Arterial,chartevents,Labs,305406,"Max: 999999.0, Min: -2.0, Mean: 104.07",None,mmol/L,new and to be confirmed,double check the unit?
+bicarbonate,NO MAPPING,228640,EtCO2,EtCO2,chartevents,Routine Vital Signs,87595,"Max: 2950460.0, Min: -62.0, Mean: 95.38",None,mmol/L,existing mapping validated by K. Smith,
+bicarbonate,NO MAPPING,223679,TCO2 (calc) Venous,TCO2 (calc) Venous,chartevents,Labs,47329,"Max: 999999.0, Min: 0.0, Mean: 196.25",None,mmol/L,new and to be confirmed,
+bicarbonate,NO MAPPING,220245,CO2 production,CO2 production,chartevents,Respiratory,45631,"Max: 1104.0, Min: 0.0, Mean: 192.43",ml/min,mmol/L,existing mapping validated by K. Smith,
+bicarbonate,NO MAPPING,228878,PeCO2,PeCO2,chartevents,Respiratory,1917,"Max: 430.0, Min: -3.0, Mean: 33.91",mmHg,mmol/L,existing mapping validated by K. Smith,
+bicarbonate,"TO MAP, CONVERT UOM",50882,Bicarbonate,,Blood,Chemistry,3934240,"Max: 132.0, Min: 2.0, Mean: 25.27",{'mEq/L': 3934239},mmol/L,new and to be confirmed,
+bicarbonate,NO MAPPING,50803,"Calculated Bicarbonate, Whole Blood",,Blood,Blood Gas,32994,"Max: 220.0, Min: 2.0, Mean: 23.58",{'mEq/L': 32994},mmol/L,new and to be confirmed,
 chloride,"TO MAP, CONVERT UOM",50902,Chloride,,Blood,Chemistry,3083705,"Max: 155.0, Min: 45.0, Mean: 101.99",{'mEq/L': 3083705},mmol/L,new mapping created by K. Smith,
 chloride,"TO MAP, CONVERT UOM",50806,"Chloride, Whole Blood",,Blood,Blood Gas,84527,"Max: 405.0, Min: 3.4, Mean: 104.1",{'mEq/L': 84527},mmol/L,new mapping created by K. Smith,
 chloride,NO MAPPING,51078,"Chloride, Urine",,Urine,Chemistry,38812,"Max: 314.0, Min: 10.0, Mean: 62.19",{'mEq/L': 38812},,new mapping created by K. Smith,
@@ -78,7 +80,7 @@ inr,"TO MAP, AS IS",51237,INR(PT),,Blood,Hematology,1399650,"Max: 27.5, Min: 0.4
 inr,"TO MAP, AS IS",51675,INR(PT),,Blood,Chemistry,38,"Max: 4.2, Min: 1.0, Mean: 2.07",{},,new mapping created by K. Smith,
 lactate,"TO MAP, AS IS",50813,Lactate,,Blood,Blood Gas,506778,"Max: 1276103.0, Min: -1.1, Mean: 4.78",{'mmol/L': 506778},mmol/L,new mapping created by K. Smith,
 lactate,"TO MAP, AS IS",53154,Lactate,,Blood,Chemistry,83,"Max: 4.3, Min: 0.3, Mean: 1.35",{'mmol/L': 83},mmol/L,new mapping created by K. Smith,
-ldh,"TO MAP, CONVERT UOM",50954,Lactate Dehydrogenase (LD),,Blood,Chemistry,473446,"Max: 377000.0, Min: 13.0, Mean: 355.51",{'IU/L': 473446},U/L,existing mapping validated by K. Smith,
+ldh,"TO MAP, AS IS",50954,Lactate Dehydrogenase (LD),,Blood,Chemistry,473446,"Max: 377000.0, Min: 13.0, Mean: 355.51",{'IU/L': 473446},U/L,existing mapping validated by K. Smith,
 lymphocytes_percent,"TO MAP, AS IS",51244,Lymphocytes,,Blood,Hematology,1241592,"Max: 100.0, Min: 0.0, Mean: 23.64",{'%': 1241592},%,new mapping created by K. Smith,We should ask the group what we're doing with these - % or absolute number
 lymphocytes_percent,NO MAPPING,51143,Atypical Lymphocytes,,Blood,Hematology,196602,"Max: 100.0, Min: 0.0, Mean: 0.83",{'%': 196602},%,new mapping created by K. Smith,
 lymphocytes_percent,"TO MAP, AS IS",51245,"Lymphocytes, Percent",,Blood,Hematology,26180,"Max: 100.0, Min: 0.0, Mean: 30.75",{'%': 26180},%,new mapping created by K. Smith,We should ask the group what we're doing with these - % or absolute number
