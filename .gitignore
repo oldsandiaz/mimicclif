@@ -1,7 +1,10 @@
 # subprojects
-CLIF_rule-based-SAT-comparison/
-CLIF-eligibility-for-mobilization/
-CLIF_icu_readmission/
+#CLIF_rule-based-SAT-comparison/
+#CLIF-eligibility-for-mobilization/
+#CLIF_icu_readmission/
+#CLIF-ICU-Mortality-Model/
+CLIF-*/
+CLIF_*/
 
 # data
 mimic-data/
