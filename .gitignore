@@ -5,6 +5,9 @@
 #CLIF-ICU-Mortality-Model/
 CLIF-*/
 CLIF_*/
+data/mimic-data
+data/rclif-*
+start_jupyter.sh
 
 # data
 mimic-data/
