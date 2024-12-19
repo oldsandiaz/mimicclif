@@ -1,7 +1,6 @@
 import pandas as pd
 import logging
-from src.data_loader import load_mimic_table
-from src.utils import save_to_parquet, rename_and_reorder_cols
+from src.utils import * # load_mimic_table, save_to_rclif, rename_and_reorder_cols, load_mapping_csv, construct_mapper_dict
 
 # Define column names and mappings for the final output
 ADT_COL_NAMES = [
@@ -14,15 +13,17 @@ ADT_COL_RENAME_MAPPER = {
     'careunit': 'location_name'
 }
 
-def map_to_adt_table(mimic_transfers, location_mapper_dict):
+def map_to_adt_table(mimic_transfers):
     """
     Processes the `transfers` table to create the CLIF ADT table.
     
     Args:
         mimic_transfers (pd.DataFrame): Preloaded transfers table.
-        location_mapper_dict (dict): Dictionary for mapping care units to location categories.
+        adt_mapper_dict (dict): Dictionary for mapping care units to location categories.
     """
     logging.info("Starting to process ADT table...")
+    adt_mapping = load_mapping_csv("adt")  
+    adt_mapper_dict = construct_mapper_dict(adt_mapping, "careunit", "location_category")
 
     # Filter transfers with valid careunit and hadm_id
     logging.info("Filtering valid transfers...")
@@ -30,7 +31,7 @@ def map_to_adt_table(mimic_transfers, location_mapper_dict):
 
     # Map location categories
     logging.info("Mapping location categories...")
-    adt['location_category'] = adt['careunit'].map(location_mapper_dict)
+    adt['location_category'] = adt['careunit'].map(adt_mapper_dict)
 
     # Rename and reorder columns
     logging.info("Renaming and reordering columns...")
@@ -45,16 +46,11 @@ def map_to_adt_table(mimic_transfers, location_mapper_dict):
     adt_final['out_dttm'] = pd.to_datetime(adt_final['out_dttm'])
 
     # Save final output
-    save_to_parquet(adt_final, "../rclif/clif_adt.parquet")
+    save_to_rclif(adt_final, "adt")
     logging.info("ADT table processed and saved successfully.")
+    
+    return adt_final
 
 if __name__ == "__main__":
-    # Load required tables
     mimic_transfers = load_mimic_table("hosp", "transfers")
-
-    # Load location mapping (assume location_mapper_dict is available or generated elsewhere)
-    location_mapping = load_mapping_csv("adt")  # Replace with your actual mapping function
-    location_mapper_dict = construct_mapper_dict(location_mapping, "careunit", "location_category")
-
-    # Process the ADT table
-    map_to_adt_table(mimic_transfers, location_mapper_dict)
+    adt_final = map_to_adt_table(mimic_transfers)

@@ -7,8 +7,7 @@ TODO
 
 import pandas as pd
 import logging
-from src.data_loader import load_mimic_table
-from src.utils import save_to_parquet, rename_and_reorder_cols
+from src.utils import *
 
 # Define column names and mappings for the final output
 HOSP_COL_NAMES = [
