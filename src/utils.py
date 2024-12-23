@@ -5,9 +5,6 @@ import pandas as pd
 import json
 from pathlib import Path
 
-# Cache to store loaded tables
-TABLE_CACHE = {}
-SCRIPT_DIR = Path(__file__).resolve().parent
 
 def load_config():
     json_path = SCRIPT_DIR / '../config/config.json'
@@ -18,6 +15,12 @@ def load_config():
     return config
 
 config = load_config()
+
+# Cache to store loaded tables
+TABLE_CACHE = {}
+SCRIPT_DIR = Path(__file__).resolve().parent
+CLIF_DATA_DIR_NAME = config["clif_data_dir_name"]
+CLIF_VERSION = config["clif_version"]
 
 # FIXME: change the input arg to config
 def setup_logging(log_file: str = "logs/test.log"):
@@ -101,8 +104,6 @@ def load_mimic_table(
     TABLE_CACHE[cache_key] = table_df
     return table_df
 
-CLIF_DATA_DIR_NAME = config["clif_data_dir_name"]
-CLIF_VERSION = config["clif_version"]
 
 def save_to_rclif(df: pd.DataFrame, table_name: str):
     global CLIF_DATA_DIR_NAME
@@ -151,7 +152,6 @@ def construct_mapper_dict(
         mapper_dict[None] = None
         
     return mapper_dict
-
 
 # -------
 #   ETL

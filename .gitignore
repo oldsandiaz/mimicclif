@@ -7,7 +7,9 @@ CLIF-*/
 CLIF_*/
 data/mimic-data
 data/rclif-*
+data/mappings/
 start_jupyter.sh
+output/
 
 # data
 mimic-data/

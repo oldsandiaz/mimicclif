@@ -75,7 +75,7 @@ def map_to_hospitalization_table(mimic_admissions, mimic_patients):
 
     # Save final output
     # FIXME
-    save_to_parquet(hosp_final, "../rclif/clif_hospitalization.parquet")
+    save_to_rclif(hosp_final, "../rclif/clif_hospitalization.parquet")
     logging.info("Hospitalization table processed and saved successfully.")
 
 if __name__ == "__main__":

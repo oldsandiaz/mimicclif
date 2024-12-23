@@ -3,7 +3,8 @@ This repository provides the workflow and code to convert the MIMIC dataset into
 
 ## Instructions
 - remind to change config
-
+- mimic-to-clif.sh dialysis
+- 
 
 ## TODO
 - use pyclif 
