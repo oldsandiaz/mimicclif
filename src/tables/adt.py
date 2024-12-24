@@ -13,7 +13,7 @@ ADT_COL_RENAME_MAPPER = {
     'careunit': 'location_name'
 }
 
-def map_to_adt_table(mimic_transfers):
+def map_and_save_adt_table(mimic_transfers):
     """
     Processes the `transfers` table to create the CLIF ADT table.
     
@@ -53,4 +53,4 @@ def map_to_adt_table(mimic_transfers):
 
 if __name__ == "__main__":
     mimic_transfers = load_mimic_table("hosp", "transfers")
-    adt_final = map_to_adt_table(mimic_transfers)
+    adt_final = map_and_save_adt_table(mimic_transfers)
