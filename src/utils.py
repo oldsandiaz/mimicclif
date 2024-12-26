@@ -5,6 +5,9 @@ import pandas as pd
 import json
 from pathlib import Path
 from functools import cache
+import duckdb
+
+SCRIPT_DIR = Path(__file__).resolve().parent
 
 def load_config():
     json_path = SCRIPT_DIR / '../config/config.json'
@@ -18,7 +21,6 @@ config = load_config()
 
 # Cache to store loaded tables
 TABLE_CACHE = {}
-SCRIPT_DIR = Path(__file__).resolve().parent
 CLIF_DATA_DIR_NAME = config["clif_data_dir_name"]
 CLIF_VERSION = config["clif_version"]
 # FIXME: delete "ALREDAY MAPPED" at some pt
@@ -106,6 +108,21 @@ def load_mimic_table(
     TABLE_CACHE[cache_key] = table_df
     return table_df
 
+
+mimic_version, module, table = "3.1", "icu", "chartevents"
+parquet_path = SCRIPT_DIR / f"../data/mimic-data/mimic-iv-{mimic_version}/{module}/{table}.csv.gz"
+con = duckdb.connect()
+# con.read_csv(str(parquet_path))
+
+query = f"""
+COPY (SELECT * FROM read_csv_auto('{str(parquet_path)}'))
+TO 'test_output.parquet' (FORMAT 'PARQUET');
+"""
+con.execute(query)
+
+# df = con.sql(query).fetchdf()
+
+
 def load_mimic_tables(tables, cache = True):
     for module, table in tables:
         logging.info(f"Loading {table} from module {module}")
@@ -191,12 +208,13 @@ def convert_and_sort_datetime(df: pd.DataFrame, additional_cols: list[str] = Non
         df = df.sort_values(ordered_cols)
     return df
 
-# find all the relevant item ids for a table
+# 
 def get_relevant_item_ids(mapping_df: pd.DataFrame, decision_col: str, 
                           excluded_labels: list = EXCLUDED_LABELS_DEFAULT,
                           excluded_item_ids: list = None
                           ):
     '''
+    Parse the mapping files and find all the relevant item ids for a table
     - decision_col: the col on which to apply the excluded_labels
     - excluded_item_ids: additional item ids to exclude
     '''
@@ -209,6 +227,24 @@ def get_relevant_item_ids(mapping_df: pd.DataFrame, decision_col: str,
         , "itemid"
         ].unique()
     
+resp_mapping = load_mapping_csv("respiratory_support")
+resp_device_mapping = load_mapping_csv("device_category")
+resp_mode_mapping = load_mapping_csv("mode_category")
+
+resp_mapper_dict = construct_mapper_dict(resp_mapping, "itemid", "variable")
+resp_device_mapper_dict = construct_mapper_dict(
+    resp_device_mapping, "device_name", "device_category", excluded_item_ids = ["223848"]
+    )
+resp_mode_mapper_dict = construct_mapper_dict(resp_mode_mapping, "mode_name", "mode_category")
+
+# ETL starts here
+resp_item_ids = get_relevant_item_ids(
+    mapping_df = resp_mapping, decision_col = "variable" # , excluded_item_ids=[223848] # remove the vent brand name
+        ) 
+
+
+
+
 def rename_and_reorder_cols(df, rename_mapper_dict: dict, new_col_order: list) -> pd.DataFrame:
     baseline_rename_mapper = {
         "subject_id": "patient_id", "hadm_id": "hospitalization_id",
@@ -242,7 +278,7 @@ def check_duplicates(df: pd.DataFrame, additional_cols: list = None):
     cols_to_check = ["hospitalization_id", "recorded_dttm"] + additional_cols
     return df[df.duplicated(subset = cols_to_check, keep = False)]
 
-@cache()
+@cache
 def item_id_to_feature_value(item_id: int, col: str = "label", df = d_items):
     '''
     Find the corresponding feature value of an item by id.
@@ -258,7 +294,7 @@ def item_id_to_feature_value(item_id: int, col: str = "label", df = d_items):
         logging.info(f"the {col} for item {item_id} ({label}) is {feature_value}")
         return feature_value
 
-@cache()
+@cache
 def item_id_to_label(item_id: int) -> str:
     '''
     Helper function that returns the "label" string of an item given its item_id. 
@@ -397,7 +433,7 @@ class ItemFinder():
         else:
             return cand_table
 
-@cache()
+@cache
 def item_id_to_value_instances(item_id: int):
     '''
     Wrapper

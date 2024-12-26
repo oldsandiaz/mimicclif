@@ -10,6 +10,7 @@ data/rclif-*
 data/mappings/
 start_jupyter.sh
 output/
+*.parquet
 
 # data
 mimic-data/
