@@ -1,9 +1,11 @@
 import numpy as np
 import pandas as pd
 import logging
-from importlib import reload
-# reload(src.utils)
-from src.utils import construct_mapper_dict, load_mapping_csv, get_relevant_item_ids, find_duplicates, item_ids_list_to_events_df, rename_and_reorder_cols, save_to_rclif 
+from src.utils import construct_mapper_dict, fetch_mimic_events, load_mapping_csv, \
+    get_relevant_item_ids, find_duplicates, rename_and_reorder_cols, save_to_rclif, \
+    convert_and_sort_datetime, setup_logging    
+
+setup_logging()
 
 RESP_COLUMNS = [
     "hospitalization_id", "recorded_dttm", "device_name", "device_category", "vent_brand_name", 
@@ -28,8 +30,9 @@ def clean_fio2_set(value: float) -> float:
     else:
         return np.nan
 
-def map_and_save_respiratory_support_table():
-    # load mapping
+def main():
+    logging.info("starting to build clif respiratory support table.")
+    # load mapping 
     resp_mapping = load_mapping_csv("respiratory_support")
     resp_device_mapping = load_mapping_csv("device_category")
     resp_mode_mapping = load_mapping_csv("mode_category")
@@ -40,20 +43,20 @@ def map_and_save_respiratory_support_table():
         )
     resp_mode_mapper = construct_mapper_dict(resp_mode_mapping, "mode_name", "mode_category")
     
-    # ETL starts here
+    logging.info("parsing the mapping files to identify relevant items and fetch relevant events.")
     resp_item_ids = get_relevant_item_ids(
         mapping_df = resp_mapping, decision_col = "variable" # , excluded_item_ids=[223848] # remove the vent brand name
         ) 
-    # TODO: change the backend of this function in utils
-    resp_events: pd.DataFrame = item_ids_list_to_events_df(resp_item_ids)
-    resp_events["variable"] = resp_events["itemid"].apply(lambda x: resp_mapper[x])
+    resp_events = fetch_mimic_events(resp_item_ids)
+    resp_events["variable"] = resp_events["itemid"].map(resp_mapper)
 
-    ### clean (dedup)
-    # remove duplicates to prepare for pivoting 
+    # dedup - remove duplicates to prepare for pivoting 
     # two kinds of duplicates to handle: by devices and other
     resp_duplicates: pd.DataFrame = find_duplicates(resp_events)
 
-    # 1/ deal with devices
+    logging.info(f"identified {len(resp_duplicates)} 'duplicated' events to be cleaned.")
+    logging.info("first, removing lower-ranked devices.")
+    # 1/ deal with dups over devices
     resp_duplicates_devices: pd.DataFrame = resp_duplicates.query("itemid == 226732").copy()
     resp_duplicates_devices["device_category"] = resp_duplicates_devices["value"].apply(
         lambda x: resp_device_mapper[x.strip()] if pd.notna(x) else None
@@ -71,14 +74,15 @@ def map_and_save_respiratory_support_table():
     # drop None
     resp_events_clean.dropna(subset = "value", inplace=True)
 
+    logging.info("second, removing duplicated device reads.")
     # 2/ deal with duplicate vent reads:
     setting_duplicate_indices_to_drop = find_duplicates(resp_events_clean).query("stay_id == 36123037").index
     resp_events_clean.drop(setting_duplicate_indices_to_drop, inplace = True)
     resp_events_clean.drop_duplicates(subset = ["hadm_id", "time", "itemid"], inplace = True)
-    # this approach drop one observation that has conflicting value -- might wanna revisit FIXME
+    # NOTE: this approach drop one observation that has conflicting value
 
-    # create two columns based on item_id: 
-    resp_events_clean["label"] = resp_events_clean["itemid"].map(item_id_to_label)
+    # create two columns based on item_id:  TODO: retire one
+    # resp_events_clean["label"] = resp_events_clean["itemid"].map(item_id_to_label)
     resp_events_clean["variable"] = resp_events_clean["itemid"].map(resp_mapper)
 
     ### pivot and coalesce
@@ -89,6 +93,7 @@ def map_and_save_respiratory_support_table():
     #     values = "value" 
     # )
     
+    logging.info("pivoting to a wide format and coalescing 'duplicate' columns.")
     # this is for actually cleaning based on item ids
     resp_wider_in_ids = resp_events_clean.pivot(
         index = ["hadm_id", "time"], 
@@ -116,13 +121,14 @@ def map_and_save_respiratory_support_table():
         )
     resp_wider_cleaned.rename(columns=resp_mapper, inplace = True)
 
+    logging.info("mapping device and mode names to categories.")
     # map _name to _category
     resp_wider_cleaned["device_category"] = resp_wider_cleaned["device_name"].map(
         lambda x: resp_device_mapper[x.strip()] if pd.notna(x) else None
         )
     resp_wider_cleaned["mode_category"] = resp_wider_cleaned["mode_name"].map(resp_mode_mapper)
 
-    ### rename and cast
+    logging.info("renaming, reordering, and casting columns.")
     resp_final = rename_and_reorder_cols(
         resp_wider_cleaned, 
         rename_mapper_dict = {"hadm_id": "hospitalization_id", "time": "recorded_dttm"}, 
@@ -130,13 +136,12 @@ def map_and_save_respiratory_support_table():
     )
     # convert dtypes:
     resp_float_cols = [col for col in resp_final.columns if "_set" in col or "_obs" in col]
-
     resp_final["hospitalization_id"] = resp_final["hospitalization_id"].astype(str)
     # resp_final["tracheostomy"] = resp_final["tracheostomy"].astype(bool)
     for col_name in resp_float_cols:
         resp_final[col_name] = resp_final[col_name].astype(float)
 
-    ### clean up `trach` and `fio2_set`
+    logging.info("cleaning up `tracheostomy` and `fio2_set`.")
     # processing fio2_set
     resp_final["fio2_set"] = resp_final["fio2_set"].apply(clean_fio2_set)
     resp_fc = resp_final.copy() # fc stands for final, cleaned
@@ -147,8 +152,8 @@ def map_and_save_respiratory_support_table():
         lambda x: x.cumsum().astype(bool))
     resp_fcf = rename_and_reorder_cols(resp_fc, {"trach_bool": "tracheostomy"}, RESP_COLUMNS)
     
+    logging.info("saving to a parquet file.")
     save_to_rclif(resp_fcf, "respiratory_support")
 
 if __name__ == "__main__":
-    # mimic_transfers = load_mimic_table("hosp", "transfers")
-    adt_final = map_and_save_respiratory_support_table()
+    main()
