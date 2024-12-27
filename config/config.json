@@ -1,9 +1,6 @@
-{
-    "site_name": "MIMIC-IV",
-    "tables_path": "/path/to/tables/",
-    "file_type": "parquet",
-    
-    "clif_data_dir_name": "rclif-dev-test",
+{   
+    "mimic_data_path": "/gpfs/data/healthcare-allocate/mimic-repos/CLIF-MIMIC/data/mimic-data/mimic-iv-3.1",
+    "clif_output_dir_name": "rclif-dev-test",
     "mimic_version": "3.1",
     "clif_version": "2.1",
     "clif_tables": {
@@ -12,5 +9,4 @@
         "vitals": 1,
         "dialysis": 1
     }
-
 }

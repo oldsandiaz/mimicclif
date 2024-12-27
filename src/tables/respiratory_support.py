@@ -3,7 +3,7 @@ import pandas as pd
 import logging
 from importlib import reload
 # reload(src.utils)
-from src.utils import construct_mapper_dict, load_mapping_csv # *
+from src.utils import construct_mapper_dict, load_mapping_csv, get_relevant_item_ids, find_duplicates, item_ids_list_to_events_df, rename_and_reorder_cols, save_to_rclif 
 
 RESP_COLUMNS = [
     "hospitalization_id", "recorded_dttm", "device_name", "device_category", "vent_brand_name", 
@@ -34,18 +34,19 @@ def map_and_save_respiratory_support_table():
     resp_device_mapping = load_mapping_csv("device_category")
     resp_mode_mapping = load_mapping_csv("mode_category")
 
-    resp_mapper_dict = construct_mapper_dict(resp_mapping, "itemid", "variable")
-    resp_device_mapper_dict = construct_mapper_dict(
+    resp_mapper = construct_mapper_dict(resp_mapping, "itemid", "variable")
+    resp_device_mapper = construct_mapper_dict(
         resp_device_mapping, "device_name", "device_category", excluded_item_ids = ["223848"]
         )
-    resp_mode_mapper_dict = construct_mapper_dict(resp_mode_mapping, "mode_name", "mode_category")
+    resp_mode_mapper = construct_mapper_dict(resp_mode_mapping, "mode_name", "mode_category")
     
     # ETL starts here
     resp_item_ids = get_relevant_item_ids(
         mapping_df = resp_mapping, decision_col = "variable" # , excluded_item_ids=[223848] # remove the vent brand name
         ) 
+    # TODO: change the backend of this function in utils
     resp_events: pd.DataFrame = item_ids_list_to_events_df(resp_item_ids)
-    resp_events["variable"] = resp_events["itemid"].apply(lambda x: resp_mapper_dict[x])
+    resp_events["variable"] = resp_events["itemid"].apply(lambda x: resp_mapper[x])
 
     ### clean (dedup)
     # remove duplicates to prepare for pivoting 
@@ -55,7 +56,7 @@ def map_and_save_respiratory_support_table():
     # 1/ deal with devices
     resp_duplicates_devices: pd.DataFrame = resp_duplicates.query("itemid == 226732").copy()
     resp_duplicates_devices["device_category"] = resp_duplicates_devices["value"].apply(
-        lambda x: resp_device_mapper_dict[x.strip()] if pd.notna(x) else None
+        lambda x: resp_device_mapper[x.strip()] if pd.notna(x) else None
         )
     resp_duplicates_devices.dropna(subset="device_category",inplace=True)
     resp_duplicates_devices["rank"] = resp_duplicates_devices["device_category"].apply(
@@ -78,7 +79,7 @@ def map_and_save_respiratory_support_table():
 
     # create two columns based on item_id: 
     resp_events_clean["label"] = resp_events_clean["itemid"].map(item_id_to_label)
-    resp_events_clean["variable"] = resp_events_clean["itemid"].map(resp_mapper_dict)
+    resp_events_clean["variable"] = resp_events_clean["itemid"].map(resp_mapper)
 
     ### pivot and coalesce
     # this is for EDA
@@ -113,13 +114,13 @@ def map_and_save_respiratory_support_table():
         columns = [225448, 226237, 223834, 227287, 224685, 224686, 224421, 224688, 227581, 224690, 
                 224422, 224691, 227582, 220339, 227579, 223849, 229314, 227577]
         )
-    resp_wider_cleaned.rename(columns=resp_mapper_dict, inplace = True)
+    resp_wider_cleaned.rename(columns=resp_mapper, inplace = True)
 
     # map _name to _category
     resp_wider_cleaned["device_category"] = resp_wider_cleaned["device_name"].map(
-        lambda x: resp_device_mapper_dict[x.strip()] if pd.notna(x) else None
+        lambda x: resp_device_mapper[x.strip()] if pd.notna(x) else None
         )
-    resp_wider_cleaned["mode_category"] = resp_wider_cleaned["mode_name"].map(resp_mode_mapper_dict)
+    resp_wider_cleaned["mode_category"] = resp_wider_cleaned["mode_name"].map(resp_mode_mapper)
 
     ### rename and cast
     resp_final = rename_and_reorder_cols(
@@ -149,5 +150,5 @@ def map_and_save_respiratory_support_table():
     save_to_rclif(resp_fcf, "respiratory_support")
 
 if __name__ == "__main__":
-    mimic_transfers = load_mimic_table("hosp", "transfers")
-    adt_final = map_and_save_respiratory_support_table(mimic_transfers)
+    # mimic_transfers = load_mimic_table("hosp", "transfers")
+    adt_final = map_and_save_respiratory_support_table()

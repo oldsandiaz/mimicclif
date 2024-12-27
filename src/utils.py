@@ -5,8 +5,9 @@ import pandas as pd
 import json
 from pathlib import Path
 from functools import cache
-import duckdb
+import duckdb # type: ignore
 
+con = duckdb.connect()
 SCRIPT_DIR = Path(__file__).resolve().parent
 
 def load_config():
@@ -21,14 +22,20 @@ config = load_config()
 
 # Cache to store loaded tables
 TABLE_CACHE = {}
-CLIF_DATA_DIR_NAME = config["clif_data_dir_name"]
+MIMIC_DATA_PATH = config["mimic_data_path"]
+CLIF_OUTPUT_DIR_NAME = config["clif_output_dir_name"]
 CLIF_VERSION = config["clif_version"]
-# FIXME: delete "ALREDAY MAPPED" at some pt
-EXCLUDED_LABELS_DEFAULT = ["NO MAPPING", "UNSURE", "MAPPED ELSEWHERE", "SPECIAL CASE", "ALREADY MAPPED"] 
-
-# FIXME: change the input arg to config
+EXCLUDED_LABELS_DEFAULT = ["NO MAPPING", "UNSURE", "MAPPED ELSEWHERE", "SPECIAL CASE", "ALREADY MAPPED"] # FIXME: retire "ALREDAY MAPPED" at some pt
+HOSP_TABLES = ["admissions", "d_hcpcs", "d_icd_diagnoses", "d_icd_procedures", "d_labitems", \
+    "diagnoses_icd", "drgcodes", "emar_detail", "emar", "hcpcsevents", "labevents", "microbiologyevents", \
+    "omr", "patients", "pharmacy", "poe_detail", "poe", "prescriptions", "procedures_icd", "provider", \
+    "services", "transfers"]
+ICU_TABLES = ["caregivers", "chartevents", "d_items", "datetimeevents", "icustays", "ingredientevents", \
+    "inputevents", "outputevents", "procedureevents"]
+    
 def setup_logging(log_file: str = "logs/test.log"):
     """
+    TODO: change the input arg to config
     Sets up logging for the ETL pipeline.
 
     Args:
@@ -48,11 +55,27 @@ def setup_logging(log_file: str = "logs/test.log"):
 #     I/O 
 # -----------
 
+def mimic_table_pathfinder(table: str, file_type: str = "parquet"):
+    if table in HOSP_TABLES:
+        module = "hosp"
+    elif table in ICU_TABLES:
+        module = "icu"
+    else:
+        raise ValueError(f"Table not found: {table}")
+    if file_type == "parquet":
+        ext = ".parquet"
+    elif file_type == "csv":
+        ext = ".csv.gz"
+    else:
+        raise ValueError(f"Unsupported file type; only .parquet is supported: {file_type}")
+    return f"{MIMIC_DATA_PATH}/{module}/{table}{ext}"
+
 def load_mimic_table(
     module: {"icu", "hosp"}, table, file_type: {"csv", "parquet", "pq"} = None,
     mimic_version = "3.1"
 ):
     """
+    # TODO: likely to retire this function
     Loads a MIMIC-IV table from the specified module and caches it to avoid reloading.
 
     Args:
@@ -108,21 +131,6 @@ def load_mimic_table(
     TABLE_CACHE[cache_key] = table_df
     return table_df
 
-
-mimic_version, module, table = "3.1", "icu", "chartevents"
-parquet_path = SCRIPT_DIR / f"../data/mimic-data/mimic-iv-{mimic_version}/{module}/{table}.csv.gz"
-con = duckdb.connect()
-# con.read_csv(str(parquet_path))
-
-query = f"""
-COPY (SELECT * FROM read_csv_auto('{str(parquet_path)}'))
-TO 'test_output.parquet' (FORMAT 'PARQUET');
-"""
-con.execute(query)
-
-# df = con.sql(query).fetchdf()
-
-
 def load_mimic_tables(tables, cache = True):
     for module, table in tables:
         logging.info(f"Loading {table} from module {module}")
@@ -137,11 +145,11 @@ def load_mimic_tables(tables, cache = True):
             logging.error(f"Error loading table: {table} from module: {module}. Error: {e}")
 
 def save_to_rclif(df: pd.DataFrame, table_name: str):
-    global CLIF_DATA_DIR_NAME
-    if not CLIF_DATA_DIR_NAME:
+    global CLIF_OUTPUT_DIR_NAME
+    if not CLIF_OUTPUT_DIR_NAME:
         # if it is an empty str (not specified by user), use the default syntax 
-        CLIF_DATA_DIR_NAME = f"rclif-{CLIF_VERSION}"
-    output_path = SCRIPT_DIR / f'../data/{CLIF_DATA_DIR_NAME}/clif_{table_name}.parquet'
+        CLIF_OUTPUT_DIR_NAME = f"rclif-{CLIF_VERSION}"
+    output_path = SCRIPT_DIR / f'../data/{CLIF_OUTPUT_DIR_NAME}/clif_{table_name}.parquet'
     # e.g. '../data/rclif-2.0/clif_adt.parquet'
     return df.to_parquet(output_path, index = False)
         
@@ -150,6 +158,9 @@ def read_from_rclif(table_name, file_format = "pq"):
     if file_format in ["pq", "parquet"]:
         return pd.read_parquet(SCRIPT_DIR / f'../rclif/clif_{table_name}.parquet')
 
+# -------
+#   ETL - mapping
+# -------
 def load_mapping_csv(csv_name: str, dtype = None):
     return pd.read_csv(
         SCRIPT_DIR / f"../data/mappings/mimic-to-clif-mappings - {csv_name}.csv", dtype = dtype
@@ -184,9 +195,27 @@ def construct_mapper_dict(
         
     return mapper_dict
 
-# -------
-#   ETL
-# -------
+def get_relevant_item_ids(mapping_df: pd.DataFrame, decision_col: str, 
+                          excluded_labels: list = EXCLUDED_LABELS_DEFAULT,
+                          excluded_item_ids: list = None
+                          ):
+    '''
+    Parse the mapping files and find all the relevant item ids for a table
+    - decision_col: the col on which to apply the excluded_labels
+    - excluded_item_ids: additional item ids to exclude
+    '''
+    if not excluded_item_ids:
+        excluded_item_ids = []
+    
+    return mapping_df.loc[
+        (~mapping_df[decision_col].isin(excluded_labels)) & 
+        (~mapping_df["itemid"].isin(excluded_item_ids))
+        , "itemid"
+        ].unique()
+
+# -----------------------------
+#   ETL - data manipulation
+# -----------------------------
 
 def convert_and_sort_datetime(df: pd.DataFrame, additional_cols: list[str] = None):
     if not additional_cols:
@@ -207,43 +236,6 @@ def convert_and_sort_datetime(df: pd.DataFrame, additional_cols: list[str] = Non
         ordered_cols = ["hadm_id", "time"] + additional_cols
         df = df.sort_values(ordered_cols)
     return df
-
-# 
-def get_relevant_item_ids(mapping_df: pd.DataFrame, decision_col: str, 
-                          excluded_labels: list = EXCLUDED_LABELS_DEFAULT,
-                          excluded_item_ids: list = None
-                          ):
-    '''
-    Parse the mapping files and find all the relevant item ids for a table
-    - decision_col: the col on which to apply the excluded_labels
-    - excluded_item_ids: additional item ids to exclude
-    '''
-    if not excluded_item_ids:
-        excluded_item_ids = []
-    
-    return mapping_df.loc[
-        (~mapping_df[decision_col].isin(excluded_labels)) & 
-        (~mapping_df["itemid"].isin(excluded_item_ids))
-        , "itemid"
-        ].unique()
-    
-resp_mapping = load_mapping_csv("respiratory_support")
-resp_device_mapping = load_mapping_csv("device_category")
-resp_mode_mapping = load_mapping_csv("mode_category")
-
-resp_mapper_dict = construct_mapper_dict(resp_mapping, "itemid", "variable")
-resp_device_mapper_dict = construct_mapper_dict(
-    resp_device_mapping, "device_name", "device_category", excluded_item_ids = ["223848"]
-    )
-resp_mode_mapper_dict = construct_mapper_dict(resp_mode_mapping, "mode_name", "mode_category")
-
-# ETL starts here
-resp_item_ids = get_relevant_item_ids(
-    mapping_df = resp_mapping, decision_col = "variable" # , excluded_item_ids=[223848] # remove the vent brand name
-        ) 
-
-
-
 
 def rename_and_reorder_cols(df, rename_mapper_dict: dict, new_col_order: list) -> pd.DataFrame:
     baseline_rename_mapper = {
@@ -279,8 +271,10 @@ def check_duplicates(df: pd.DataFrame, additional_cols: list = None):
     return df[df.duplicated(subset = cols_to_check, keep = False)]
 
 @cache
-def item_id_to_feature_value(item_id: int, col: str = "label", df = d_items):
+def item_id_to_feature_value(df: pd.DataFrame, item_id: int, col: str = "label"):
     '''
+    df = d_items
+    
     Find the corresponding feature value of an item by id.
     i.e. find the label, or linksto, of item id 226732.
     '''
@@ -301,8 +295,13 @@ def item_id_to_label(item_id: int) -> str:
     '''
     return item_id_to_feature_value(item_id)
 
-def item_id_to_events_df(item_id: int, original: bool = False) -> pd.DataFrame:
+# -----------------------------
+#   ETL - fetching mimic events by item id
+# -----------------------------
+
+def item_id_to_events_df_old(item_id: int, original: bool = False) -> pd.DataFrame:
     '''
+    TODO: likely rewrite or even retire
     Return in a pandas df all the events associated with an item id.
     - original: whether to return the original df (True), or a simplified one 
     with some columns (particulary timestamps) renamed to support integration 
@@ -329,13 +328,51 @@ def item_id_to_events_df(item_id: int, original: bool = False) -> pd.DataFrame:
         return events_df_simplified
     # FIXME: likely an issue if data struct of different events table are different 
 
-def item_ids_list_to_events_df(item_ids: list, original = False):
-    df_list = [item_id_to_events_df(item_id, original = original) for item_id in item_ids]
-    df_merged = pd.concat(df_list) #.head().assign(
-        ## linksto = lambda df: df["itemid"].apply(lambda item_id: item_id_to_feature_value(item_id, col = "linksto"))
-    # )
-    return df_merged 
-    # FIXME: automatically add the label and linksto table source columns -- create cache?
+def fetch_mimic_events_by_eventtable(item_ids: list[int], table_name: str, original: bool = False):
+    '''
+    Fetch all the events associated with a list of item ids from a given event table.
+    
+    TODO: add further specification for the original argument
+    '''  
+    logging.info(f"fetching events from {table_name} for item ids {item_ids}")
+    if original:
+        cols = "*"
+    elif table_name == "chartevents":
+        cols = "itemid, hadm_id, stay_id, charttime as time, value, valueuom"
+    elif table_name == "procedureevents":
+        cols = "itemid, hadm_id, stay_id, endtime as time, value, valueuom"
+    else:
+        cols = "*"
+        logging.warning(f"{table_name} not yet supported, thus returning all columns")
+    query = f"""
+    SELECT {cols}
+    FROM '{mimic_table_pathfinder(table_name)}'
+    WHERE itemid IN ({','.join(map(str, item_ids))})
+    """
+    df = con.execute(query).fetchdf()
+    logging.info(f"fetched {len(df)} events from {table_name} for item ids {item_ids}")
+    return df
+
+def fetch_mimic_events(item_ids: list[int], original: bool = False):
+    '''
+    Takes a list of item IDs and returns a DataFrame containing all the events 
+    associated with those item IDs.
+        '''
+    # first query the d_items table to get the linksto table name for each item id
+    logging.info(f"querying the d_items table to get the event table name for items {item_ids}")
+    query = f"""
+    SELECT itemid, linksto
+    FROM '{mimic_table_pathfinder("d_items")}'
+    WHERE itemid IN ({','.join(map(str, item_ids))})
+    """
+    df = con.execute(query).fetchdf()
+    eventtable_to_itemids_mapper = df.groupby("linksto")["itemid"].apply(list).to_dict()
+    logging.info(f"{len(eventtable_to_itemids_mapper)} event tables to be separately queried: {eventtable_to_itemids_mapper.keys()}")
+    df_list = [fetch_mimic_events_by_eventtable(item_ids, table_name, original = original) \
+        for table_name, item_ids in eventtable_to_itemids_mapper.items()]
+    df_m = pd.concat(df_list)
+    logging.info(f"concatenated {len(df_m)} events from {len(eventtable_to_itemids_mapper)} event tables")
+    return df_m
 
 def item_finder_to_events(items: pd.DataFrame):
     items = items.dropna(subset = ["count"])
@@ -349,11 +386,13 @@ class ItemFinder():
     '''
     TODO likely replacing this with duckdb sql queries
     '''
-    def __init__(self, kw = None, items_df = d_items, 
+    def __init__(self, items_df: pd.DataFrame, kw = None, 
                  col: str = "label", case_sensitive: bool = False, 
                  for_labs: bool = False, report_na = True
                  ) -> pd.DataFrame:
         '''
+        items_df = d_items
+        
         Look up an item by keyword from the `d_items` table of the `icu` module.
         - case: whether the search is case sensitive
         - report_na: whether to print when there is no match; or simply return a 
@@ -451,16 +490,20 @@ def item_id_to_value_instances(item_id: int):
     print(f"item label: {label}; value instances: {str(val_instances)}")
     return str(val_instances)
 
-def item_id_to_value_instances_categorical(item_id: int, events: pd.DataFrame = chartevents):
+def item_id_to_value_instances_categorical(item_id: int, events: pd.DataFrame):
     '''
+    events: pd.DataFrame = chartevents
+    
     Return all the unique categories
     '''
     assoc_events = events.loc[events["itemid"] == item_id, :]
     categories: pd.Series = assoc_events.value_counts("value") 
     return categories
     
-def item_id_to_value_instances_numeric(item_id: int, events: pd.DataFrame = chartevents):
+def item_id_to_value_instances_numeric(item_id: int, events: pd.DataFrame):
     '''
+    events: pd.DataFrame = chartevents
+    
     Find max, min, mean of a continuous, or numeric, item.
     '''
     valuenum_col = events.loc[events["itemid"] == item_id, :]["valuenum"]
