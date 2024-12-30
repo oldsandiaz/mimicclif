@@ -152,7 +152,7 @@ def main():
     resp_fcf = rename_and_reorder_cols(resp_fc, {"trach_bool": "tracheostomy"}, RESP_COLUMNS)
     
     save_to_rclif(resp_fcf, "respiratory_support")
-    logging.info("Output saved as a parquet file, everything completed for the respiratory support table!")
+    logging.info("Output saved to a parquet file, everything completed for the respiratory support table!")
 
 if __name__ == "__main__":
     main()

@@ -22,8 +22,9 @@ config = load_config()
 
 # Cache to store loaded tables
 TABLE_CACHE = {}
-MIMIC_CSV_DIR = config["mimic_csv_dir"]
-MIMIC_PARQUET_DIR = config["mimic_parquet_dir"]
+ENVIRONMENT_CHOICE = config["environment_choice"]
+MIMIC_CSV_DIR = config[ENVIRONMENT_CHOICE]["mimic_csv_dir"]
+MIMIC_PARQUET_DIR = config[ENVIRONMENT_CHOICE]["mimic_parquet_dir"]
 CLIF_OUTPUT_DIR_NAME = config["clif_output_dir_name"]
 CLIF_VERSION = config["clif_version"]
 EXCLUDED_LABELS_DEFAULT = [
@@ -69,7 +70,6 @@ ICU_TABLES = [
     "procedureevents",
 ]
 
-
 def setup_logging(log_file: str = "logs/test.log"):
     """
     TODO: change the input arg to config
@@ -94,7 +94,7 @@ def parquet_stored_in_submodules() -> bool:
     Check if the parquet files are stored in subdirectories: "hosp" and "icu" (True)
     or stored together under the same directory (False).
     '''
-    return Path(MIMIC_PARQUET_DIR / "hosp").exists() and Path(MIMIC_PARQUET_DIR / "icu").exists()
+    return Path(MIMIC_PARQUET_DIR + "/hosp").exists() and Path(MIMIC_PARQUET_DIR + "/icu").exists()
 
 def mimic_table_pathfinder(table: str, data_format: str = "parquet"):
     '''
@@ -141,8 +141,9 @@ def resave_mimic_table_from_csv_to_parquet(table: str, overwrite: bool = False):
     TO '{str(mimic_table_pathfinder(table, data_format='parquet'))}' (FORMAT 'PARQUET');
     """
     con.execute(query)
+    logging.info(f"finished resaving {table} from .csv.gz to .parquet!")
     
-def resave_select_mimic_tables_from_csv_to_parquet(mimic_tables: list[str], overwrite: bool = False):
+def resave_select_mimic_tables_from_csv_to_parquet(tables: list[str], overwrite: bool = False):
     '''
     Resave a list of MIMIC tables from csv to parquet.
     
@@ -151,15 +152,15 @@ def resave_select_mimic_tables_from_csv_to_parquet(mimic_tables: list[str], over
     '''
     # first check which tables are already converted to parquet by checking the parquet dir
     counter = 0
-    for table in mimic_tables:
+    for table in tables:
         counter += 1
-        logging.info(f"resaving {table} from .csv.gz to .parquet (table {counter} out of {len(mimic_tables)}).")
+        logging.info(f"resaving {table} from .csv.gz to .parquet (table {counter} out of {len(tables)}).")
         try: 
             resave_mimic_table_from_csv_to_parquet(table, overwrite = overwrite)
         except FileExistsError as e:
             logging.info(e)
             continue
-    logging.info(f"finished resaving all {len(mimic_tables)} tables from .csv.gz to .parquet!")
+    logging.info(f"finished resaving all {len(tables)} tables from .csv.gz to .parquet!")
 
 def resave_all_mimic_tables_from_csv_to_parquet(overwrite: bool = False):
     '''
@@ -169,12 +170,7 @@ def resave_all_mimic_tables_from_csv_to_parquet(overwrite: bool = False):
     resave_select_mimic_tables_from_csv_to_parquet(HOSP_TABLES + ICU_TABLES, overwrite = overwrite)
 
 
-def load_mimic_table(
-    module: {"icu", "hosp"},
-    table,
-    file_type: {"csv", "parquet", "pq"} = None,
-    mimic_version="3.1",
-):
+def load_mimic_table(table, file_type: {"csv", "parquet", "pq"} = None, mimic_version="3.1"):
     """
     # TODO: likely to retire this function
     Loads a MIMIC-IV table from the specified module and caches it to avoid reloading.
@@ -193,11 +189,11 @@ def load_mimic_table(
         ValueError: If an unsupported file type is provided.
     """
     global TABLE_CACHE
-    cache_key = f"{module}_{table}"
+    cache_key = table
 
     # Check if table is already in cache
     if cache_key in TABLE_CACHE:
-        logging.info(f"Using cached data for {table} from module {module}.")
+        logging.info(f"Using cached data for {table}.")
         return TABLE_CACHE[cache_key]
 
     # Define file paths
@@ -265,7 +261,7 @@ def save_to_rclif(df: pd.DataFrame, table_name: str):
         # if it is an empty str (not specified by user), use the default syntax
         CLIF_OUTPUT_DIR_NAME = f"rclif-{CLIF_VERSION}"
     output_path = (
-        SCRIPT_DIR / f"../data/{CLIF_OUTPUT_DIR_NAME}/clif_{table_name}.parquet"
+        SCRIPT_DIR / f"../output/{CLIF_OUTPUT_DIR_NAME}/clif_{table_name}.parquet"
     ) # e.g. '../data/rclif-2.0/clif_adt.parquet'
     # check if the directory exists, if not, create it
     if not os.path.exists(output_path.parent):
@@ -283,6 +279,7 @@ def read_from_rclif(table_name, file_format="pq"):
 # -------
 #   ETL - mapping
 # -------
+
 def load_mapping_csv(csv_name: str, dtype=None):
     return pd.read_csv(
         SCRIPT_DIR / f"../data/mappings/mimic-to-clif-mappings - {csv_name}.csv",
@@ -343,7 +340,6 @@ def get_relevant_item_ids(
 # -----------------------------
 #   ETL - data manipulation
 # -----------------------------
-
 
 def convert_and_sort_datetime(df: pd.DataFrame, additional_cols: list[str] = None):
     if not additional_cols:
@@ -437,9 +433,8 @@ def item_id_to_label(item_id: int) -> str:
 
 
 # -----------------------------
-#   ETL - fetching mimic events by item id
+#   ETL - fetching mimic events
 # -----------------------------
-
 
 def item_id_to_events_df_old(item_id: int, original: bool = False) -> pd.DataFrame:
     """

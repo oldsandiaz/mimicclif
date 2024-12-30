@@ -7,10 +7,11 @@ CLIF-*/
 CLIF_*/
 data/mimic-data
 data/rclif-*
-data/mappings/
+data/mappings/.*
 start_jupyter.sh
-output/
+output/*
 *.parquet
+logs/*
 
 # data
 mimic-data/

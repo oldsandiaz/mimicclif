@@ -1,7 +1,16 @@
 from importlib import reload
-from src.utils import setup_logging, fetch_mimic_events, get_relevant_item_ids, construct_mapper_dict, load_mapping_csv
+import pandas as pd
+import src.utils
+from src.utils import setup_logging, fetch_mimic_events, get_relevant_item_ids, construct_mapper_dict, \
+    load_mapping_csv, resave_mimic_table_from_csv_to_parquet, resave_select_mimic_tables_from_csv_to_parquet
 
 setup_logging()
+
+resave_select_mimic_tables_from_csv_to_parquet(tables = ["d_items", "chartevents"], overwrite = True)
+
+chartevents = pd.read_parquet(src.utils.mimic_table_pathfinder("chartevents"))
+d_items = pd.read_parquet(src.utils.mimic_table_pathfinder("d_items"))
+
 resp_mapping = load_mapping_csv("respiratory_support")
 resp_device_mapping = load_mapping_csv("device_category")
 resp_mode_mapping = load_mapping_csv("mode_category")
@@ -33,3 +42,5 @@ TO 'test_output.parquet' (FORMAT 'PARQUET');
 con.execute(query)
 
 # df = con.sql(query).fetchdf()
+
+# ------------------------------------------------------------------------------------------------

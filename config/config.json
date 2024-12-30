@@ -1,6 +1,16 @@
-{   
-    "mimic_csv_dir": "/gpfs/data/healthcare-allocate/mimic-repos/CLIF-MIMIC/data/mimic-data/mimic-iv-3.1",
-    "mimic_parquet_dir": "/gpfs/data/healthcare-allocate/mimic-repos/CLIF-MIMIC/data/mimic-db/mimic-iv-3.1/parquet",
+{   "environment_choice": "local",
+    "local": {
+        "mimic_csv_dir": "/Users/wliao0504/Library/Mobile Documents/com~apple~CloudDocs/Repo/hca-lab/CLIF-MIMIC/data/mimic-data/mimic-iv-3.1",
+        "mimic_parquet_dir":"/Users/wliao0504/Library/Mobile Documents/com~apple~CloudDocs/Repo/hca-lab/CLIF-MIMIC/data/mimic-data/mimic-iv-3.1/parquet"
+    },
+    "local_test": {
+        "mimic_csv_dir": "/Users/wliao0504/Library/Mobile Documents/com~apple~CloudDocs/Repo/hca-lab/CLIF-MIMIC/data/mimic-data/mimic-iv-3.1",
+        "mimic_parquet_dir":"/Users/wliao0504/Library/Mobile Documents/com~apple~CloudDocs/Repo/hca-lab/CLIF-MIMIC/data/mimic-data/mimic-iv-3.1/parquet-dev-test"
+    },
+    "remote": {
+        "mimic_csv_dir": "/gpfs/data/healthcare-allocate/mimic-repos/CLIF-MIMIC/data/mimic-data/mimic-iv-3.1",
+        "mimic_parquet_dir":"/gpfs/data/healthcare-allocate/mimic-repos/CLIF-MIMIC/data/mimic-db/mimic-iv-3.1/parquet"
+    },
     "clif_output_dir_name": "rclif-dev-test",
     "mimic_version": "3.1",
     "clif_version": "2.1",
