@@ -43,7 +43,7 @@ def main():
         )
     resp_mode_mapper = construct_mapper_dict(resp_mode_mapping, "mode_name", "mode_category")
     
-    logging.info("parsing the mapping files to identify relevant items and fetch relevant events.")
+    logging.info("parsing the mapping files to identify relevant items and fetch corresponding events.")
     resp_item_ids = get_relevant_item_ids(
         mapping_df = resp_mapping, decision_col = "variable" # , excluded_item_ids=[223848] # remove the vent brand name
         ) 
@@ -55,7 +55,7 @@ def main():
     resp_duplicates: pd.DataFrame = find_duplicates(resp_events)
 
     logging.info(f"identified {len(resp_duplicates)} 'duplicated' events to be cleaned.")
-    logging.info("first, removing lower-ranked devices.")
+    logging.info("first, removing lower-ranked 'duplicated' devices.")
     # 1/ deal with dups over devices
     resp_duplicates_devices: pd.DataFrame = resp_duplicates.query("itemid == 226732").copy()
     resp_duplicates_devices["device_category"] = resp_duplicates_devices["value"].apply(
@@ -85,7 +85,7 @@ def main():
     # resp_events_clean["label"] = resp_events_clean["itemid"].map(item_id_to_label)
     resp_events_clean["variable"] = resp_events_clean["itemid"].map(resp_mapper)
 
-    ### pivot and coalesce
+    logging.info("pivoting to a wide format and coalescing duplicate columns using the logic defined in the mapping file.")
     # this is for EDA
     # resp_wider_in_lables = resp_events_clean.pivot(
     #     index = ["hadm_id", "time"], 
@@ -93,7 +93,6 @@ def main():
     #     values = "value" 
     # )
     
-    logging.info("pivoting to a wide format and coalescing 'duplicate' columns.")
     # this is for actually cleaning based on item ids
     resp_wider_in_ids = resp_events_clean.pivot(
         index = ["hadm_id", "time"], 
@@ -128,7 +127,7 @@ def main():
         )
     resp_wider_cleaned["mode_category"] = resp_wider_cleaned["mode_name"].map(resp_mode_mapper)
 
-    logging.info("renaming, reordering, and casting columns.")
+    logging.info("renaming, reordering, and re-casting columns in line with the schema.")
     resp_final = rename_and_reorder_cols(
         resp_wider_cleaned, 
         rename_mapper_dict = {"hadm_id": "hospitalization_id", "time": "recorded_dttm"}, 
@@ -152,8 +151,8 @@ def main():
         lambda x: x.cumsum().astype(bool))
     resp_fcf = rename_and_reorder_cols(resp_fc, {"trach_bool": "tracheostomy"}, RESP_COLUMNS)
     
-    logging.info("saving to a parquet file.")
     save_to_rclif(resp_fcf, "respiratory_support")
+    logging.info("Output saved as a parquet file, everything completed for the respiratory support table!")
 
 if __name__ == "__main__":
     main()

@@ -1,5 +1,6 @@
 {   
-    "mimic_data_path": "/gpfs/data/healthcare-allocate/mimic-repos/CLIF-MIMIC/data/mimic-data/mimic-iv-3.1",
+    "mimic_csv_dir": "/gpfs/data/healthcare-allocate/mimic-repos/CLIF-MIMIC/data/mimic-data/mimic-iv-3.1",
+    "mimic_parquet_dir": "/gpfs/data/healthcare-allocate/mimic-repos/CLIF-MIMIC/data/mimic-db/mimic-iv-3.1/parquet",
     "clif_output_dir_name": "rclif-dev-test",
     "mimic_version": "3.1",
     "clif_version": "2.1",
