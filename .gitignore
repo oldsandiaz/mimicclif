@@ -14,7 +14,7 @@ output/
 
 # data
 mimic-data/
-moukheiber-respiratory-support-dataset/
+*moukheiber-respiratory-support-dataset/
 rclif/
 clif-tables/
 rclif-1.0/
