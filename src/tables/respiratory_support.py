@@ -1,3 +1,4 @@
+# src/tables/respiratory_support.py
 import numpy as np
 import pandas as pd
 import logging
@@ -31,7 +32,7 @@ def clean_fio2_set(value: float) -> float:
         return np.nan
 
 def main():
-    logging.info("starting to build clif respiratory support table.")
+    logging.info("starting to build clif respiratory support table -- ")
     # load mapping 
     resp_mapping = load_mapping_csv("respiratory_support")
     resp_device_mapping = load_mapping_csv("device_category")
@@ -43,7 +44,7 @@ def main():
         )
     resp_mode_mapper = construct_mapper_dict(resp_mode_mapping, "mode_name", "mode_category")
     
-    logging.info("parsing the mapping files to identify relevant items and fetch corresponding events.")
+    logging.info("parsing the mapping files to identify relevant items and fetch corresponding events...")
     resp_item_ids = get_relevant_item_ids(
         mapping_df = resp_mapping, decision_col = "variable" # , excluded_item_ids=[223848] # remove the vent brand name
         ) 
@@ -55,7 +56,7 @@ def main():
     resp_duplicates: pd.DataFrame = find_duplicates(resp_events)
 
     logging.info(f"identified {len(resp_duplicates)} 'duplicated' events to be cleaned.")
-    logging.info("first, removing lower-ranked 'duplicated' devices.")
+    logging.info("removing the first type of duplicates: lower-ranked 'duplicated' devices...")
     # 1/ deal with dups over devices
     resp_duplicates_devices: pd.DataFrame = resp_duplicates.query("itemid == 226732").copy()
     resp_duplicates_devices["device_category"] = resp_duplicates_devices["value"].apply(
@@ -74,7 +75,7 @@ def main():
     # drop None
     resp_events_clean.dropna(subset = "value", inplace=True)
 
-    logging.info("second, removing duplicated device reads.")
+    logging.info("removing the second type of duplicates: duplicated device reads...")
     # 2/ deal with duplicate vent reads:
     setting_duplicate_indices_to_drop = find_duplicates(resp_events_clean).query("stay_id == 36123037").index
     resp_events_clean.drop(setting_duplicate_indices_to_drop, inplace = True)
@@ -85,7 +86,7 @@ def main():
     # resp_events_clean["label"] = resp_events_clean["itemid"].map(item_id_to_label)
     resp_events_clean["variable"] = resp_events_clean["itemid"].map(resp_mapper)
 
-    logging.info("pivoting to a wide format and coalescing duplicate columns using the logic defined in the mapping file.")
+    logging.info("pivoting to a wide format and coalescing duplicate columns...")
     # this is for EDA
     # resp_wider_in_lables = resp_events_clean.pivot(
     #     index = ["hadm_id", "time"], 
@@ -120,14 +121,14 @@ def main():
         )
     resp_wider_cleaned.rename(columns=resp_mapper, inplace = True)
 
-    logging.info("mapping device and mode names to categories.")
+    logging.info("mapping device and mode names to categories...")
     # map _name to _category
     resp_wider_cleaned["device_category"] = resp_wider_cleaned["device_name"].map(
         lambda x: resp_device_mapper[x.strip()] if pd.notna(x) else None
         )
     resp_wider_cleaned["mode_category"] = resp_wider_cleaned["mode_name"].map(resp_mode_mapper)
 
-    logging.info("renaming, reordering, and re-casting columns in line with the schema.")
+    logging.info("renaming, reordering, and re-casting columns...")
     resp_final = rename_and_reorder_cols(
         resp_wider_cleaned, 
         rename_mapper_dict = {"hadm_id": "hospitalization_id", "time": "recorded_dttm"}, 
@@ -140,19 +141,19 @@ def main():
     for col_name in resp_float_cols:
         resp_final[col_name] = resp_final[col_name].astype(float)
 
-    logging.info("cleaning up `tracheostomy` and `fio2_set`.")
-    # processing fio2_set
+    logging.info("converting fio2_set to the correct ranges...")
     resp_final["fio2_set"] = resp_final["fio2_set"].apply(clean_fio2_set)
     resp_fc = resp_final.copy() # fc stands for final, cleaned
+    
+    logging.info("imputing whether tracheostomy had been performed at the time of observation...")
     resp_fc.rename(columns={"tracheostomy": "trach_performed"}, inplace=True)
-    # processing trach
     resp_fc["trach_implied"] = (resp_fc["device_name"].isin(["Tracheostomy tube","Trach mask"])) | (resp_fc["trach_performed"] == 1)
     resp_fc['trach_bool'] = resp_fc.groupby('hospitalization_id')['trach_implied'].transform(
         lambda x: x.cumsum().astype(bool))
     resp_fcf = rename_and_reorder_cols(resp_fc, {"trach_bool": "tracheostomy"}, RESP_COLUMNS)
     
     save_to_rclif(resp_fcf, "respiratory_support")
-    logging.info("Output saved to a parquet file, everything completed for the respiratory support table!")
+    logging.info("output saved to a parquet file, everything completed for the respiratory support table!")
 
 if __name__ == "__main__":
     main()

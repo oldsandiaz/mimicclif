@@ -1,40 +1,51 @@
-careunit,count,location_category,status
-Emergency Department,625907,ER,existing mapping validated by K. Smith
-Medicine,149709,Ward,existing mapping validated by K. Smith
-Emergency Department Observation,80909,ER,existing mapping validated by K. Smith
-Discharge Lounge,52950,Other,existing mapping validated by K. Smith
-Med/Surg,47581,Ward,existing mapping validated by K. Smith
-Medicine/Cardiology,44014,Ward,existing mapping validated by K. Smith
-Neurology,39126,Ward,existing mapping validated by K. Smith
-Hematology/Oncology,35542,Ward,existing mapping validated by K. Smith
-Vascular,30939,Ward,existing mapping validated by K. Smith
-Transplant,29963,Ward,existing mapping validated by K. Smith
-Med/Surg/GYN,26521,Ward,wrong mapping corrected by K. Smith
-Med/Surg/Trauma,23329,Ward,wrong mapping corrected by K. Smith
-PACU,23237,Other,wrong mapping corrected by K. Smith
-Labor & Delivery,21731,Other,existing mapping validated by K. Smith
-Medical Intensive Care Unit (MICU),21187,ICU,existing mapping validated by K. Smith
-Cardiac Surgery,17211,Ward,wrong mapping corrected by K. Smith
-Surgery/Trauma,16811,Ward,wrong mapping corrected by K. Smith
-Medical/Surgical Intensive Care Unit (MICU/SICU),16198,ICU,existing mapping validated by K. Smith
-Cardiac Vascular Intensive Care Unit (CVICU),16158,ICU,existing mapping validated by K. Smith
-Obstetrics (Postpartum & Antepartum),15927,Ward,existing mapping validated by K. Smith
-Surgical Intensive Care Unit (SICU),14502,ICU,existing mapping validated by K. Smith
-Psychiatry,13193,Other,existing mapping validated by K. Smith
-Trauma SICU (TSICU),11697,ICU,existing mapping validated by K. Smith
-Hematology/Oncology Intermediate,11494,Ward,existing mapping validated by K. Smith
-Coronary Care Unit (CCU),10796,ICU,existing mapping validated by K. Smith
-Medical/Surgical (Gynecology),9653,Ward,existing mapping validated by K. Smith
-Surgery,9344,Ward,wrong mapping corrected by K. Smith
-Surgery/Pancreatic/Biliary/Bariatric,8610,Ward,wrong mapping corrected by K. Smith
-Medicine/Cardiology Intermediate,7118,Ward,existing mapping validated by K. Smith
-Cardiology Surgery Intermediate,4500,Ward,wrong mapping corrected by K. Smith
-Observation,4386,Other,existing mapping validated by K. Smith
-Obstetrics Postpartum,4300,Ward,existing mapping validated by K. Smith
-Neuro Intermediate,3842,Ward,existing mapping validated by K. Smith
-Thoracic Surgery,3128,Ward,wrong mapping corrected by K. Smith
-Cardiology,2381,Ward,existing mapping validated by K. Smith
-Neuro Surgical Intensive Care Unit (Neuro SICU),2358,ICU,existing mapping validated by K. Smith
-Neuro Stepdown,1899,Ward,existing mapping validated by K. Smith
-Obstetrics Antepartum,1446,Ward,existing mapping validated by K. Smith
-Unknown,144,Other,existing mapping validated by K. Smith
+careunit,count,location_category,status,note,careunit_old,count_old,location_category_old
+Emergency Department,784400,ed,existing mapping validated by Dr. Guleria,,Emergency Department,625907,ed
+Medicine,191862,ward,existing mapping validated by Dr. Guleria,,Medicine,149709,ward
+Emergency Department Observation,101347,ed,existing mapping validated by Dr. Guleria,,Emergency Department Observation,80909,ed
+Discharge Lounge,71241,other,existing mapping validated by Dr. Guleria,,Discharge Lounge,52950,other
+Med/Surg,56907,ward,wrong mapping corrected by Dr. Guleria,,Med/Surg,47581,ward
+Medicine/Cardiology,53897,ward,existing mapping validated by Dr. Guleria,,Medicine/Cardiology,44014,ward
+Neurology,49749,ward,existing mapping validated by Dr. Guleria,,Neurology,39126,ward
+Transplant,37907,ward,existing mapping validated by Dr. Guleria,,Hematology/Oncology,35542,ward
+Hematology/Oncology,37354,ward,existing mapping validated by Dr. Guleria,,Vascular,30939,ward
+PACU,34958,procedural,wrong mapping corrected by Dr. Guleria,PACU is the post-anesthesia care unit. It's a very temporary unit that patients go to after a procedure. I would be curious how other institutions map their PACUs honestly. Procedural is probably the closest in my mind.,Transplant,29963,ward
+Vascular,32546,ward,existing mapping validated by Dr. Guleria,,Med/Surg/GYN,26521,ward
+Labor & Delivery,29003,l&d,existing mapping validated by Dr. Guleria,,Med/Surg/Trauma,23329,ward
+Med/Surg/GYN,27958,ward,wrong mapping corrected by Dr. Guleria,,PACU,23237,other
+Medical Intensive Care Unit (MICU),26380,icu,existing mapping validated by Dr. Guleria,,Labor & Delivery,21731,l&d
+Surgery/Trauma,26379,ward,wrong mapping corrected by Dr. Guleria,,Medical Intensive Care Unit (MICU),21187,icu
+Med/Surg/Trauma,24544,ward,existing mapping validated by Dr. Guleria,,Cardiac Surgery,17211,ward
+Hematology/Oncology Intermediate,24376,stepdown,wrong mapping corrected by Dr. Guleria,"Usually ""intermediate"" or ""IMCU"" is a code for stepdown",Surgery/Trauma,16811,ward
+Surgery,21417,ward,wrong mapping corrected by Dr. Guleria,,Medical/Surgical Intensive Care Unit (MICU/SICU),16198,icu
+Cardiac Vascular Intensive Care Unit (CVICU),20920,icu,existing mapping validated by Dr. Guleria,,Cardiac Vascular Intensive Care Unit (CVICU),16158,icu
+Medical/Surgical Intensive Care Unit (MICU/SICU),20427,icu,existing mapping validated by Dr. Guleria,,Obstetrics (Postpartum & Antepartum),15927,ward
+Cardiac Surgery,18003,ward,wrong mapping corrected by Dr. Guleria,,Surgical Intensive Care Unit (SICU),14502,icu
+Surgical Intensive Care Unit (SICU),17311,icu,existing mapping validated by Dr. Guleria,,Psychiatry,13193,psych
+Obstetrics (Postpartum & Antepartum),16919,ward,existing mapping validated by Dr. Guleria,"This feels correct to call it a ward, but some places mix L&D and antepartum, FYI.",Trauma SICU (TSICU),11697,icu
+Psychiatry,16873,psych,existing mapping validated by Dr. Guleria,,Hematology/Oncology Intermediate,11494,ward
+Medicine/Cardiology Intermediate,15535,stepdown,wrong mapping corrected by Dr. Guleria,,Coronary Care Unit (CCU),10796,icu
+Trauma SICU (TSICU),14972,icu,existing mapping validated by Dr. Guleria,,Medical/Surgical (Gynecology),9653,ward
+Coronary Care Unit (CCU),13923,icu,existing mapping validated by Dr. Guleria,,Surgery,9344,ward
+Cardiology Surgery Intermediate,10415,stepdown,wrong mapping corrected by Dr. Guleria,,Surgery/Pancreatic/Biliary/Bariatric,8610,ward
+Medical/Surgical (Gynecology),10214,ward,wrong mapping corrected by Dr. Guleria,,Medicine/Cardiology Intermediate,7118,ward
+Surgery/Pancreatic/Biliary/Bariatric,9031,ward,wrong mapping corrected by Dr. Guleria,,Cardiology Surgery Intermediate,4500,ward
+Neuro Intermediate,8834,stepdown,wrong mapping corrected by Dr. Guleria,,Observation,4386,other
+Obstetrics Postpartum,8086,ward,existing mapping validated by Dr. Guleria,,Obstetrics Postpartum,4300,ward
+Surgery/Vascular/Intermediate,7515,stepdown,wrong mapping corrected by Dr. Guleria,,Neuro Intermediate,3842,ward
+Observation,4624,ward,wrong mapping corrected by Dr. Guleria,"Observation units are wards, people just usually stay for 48 hrs or less",Thoracic Surgery,3128,ward
+Cardiology,4392,ward,existing mapping validated by Dr. Guleria,,Cardiology,2381,ward
+Neuro Surgical Intensive Care Unit (Neuro SICU),4027,icu,existing mapping validated by Dr. Guleria,,Neuro Surgical Intensive Care Unit (Neuro SICU),2358,icu
+Thoracic Surgery,3284,ward,wrong mapping corrected by Dr. Guleria,,Neuro Stepdown,1899,stepdown
+Obstetrics Antepartum,3009,ward,existing mapping validated by Dr. Guleria,,Obstetrics Antepartum,1446,ward
+Neuro Stepdown,2016,stepdown,existing mapping validated by Dr. Guleria,,Unknown,144,other
+Nursery,1972,ward,existing mapping validated by Dr. Guleria,,,,
+Surgical Intermediate,1791,stepdown,wrong mapping corrected by Dr. Guleria,,,,
+Oncology,789,ward,existing mapping validated by Dr. Guleria,,,,
+UNKNOWN,172,other,existing mapping validated by Dr. Guleria,,,,
+Unknown,158,other,existing mapping validated by Dr. Guleria,,,,
+Intensive Care Unit (ICU),117,icu,existing mapping validated by Dr. Guleria,,,,
+Special Care Nursery (SCN),3,ward,existing mapping validated by Dr. Guleria,,,,
+,,,,,,,
+"""Given that physical location is not typically of importance in research we chose to not provide ward_id in MIMIC-IV.” 
+
+https://github.com/MIT-LCP/mimic-code/discussions/1143",,,,,,,

@@ -1,6 +1,6 @@
 # src/utils.py
 import logging
-import os
+import os, sys
 import pandas as pd
 import json
 from pathlib import Path
@@ -9,6 +9,7 @@ import duckdb  # type: ignore
 
 con = duckdb.connect()
 SCRIPT_DIR = Path(__file__).resolve().parent
+REPO_ROOT = SCRIPT_DIR.parent
 
 def load_config():
     json_path = SCRIPT_DIR / "../config/config.json"
@@ -22,9 +23,9 @@ config = load_config()
 
 # Cache to store loaded tables
 TABLE_CACHE = {}
-ENVIRONMENT_CHOICE = config["environment_choice"]
-MIMIC_CSV_DIR = config[ENVIRONMENT_CHOICE]["mimic_csv_dir"]
-MIMIC_PARQUET_DIR = config[ENVIRONMENT_CHOICE]["mimic_parquet_dir"]
+CURRENT_WORKSPACE = config["current_workspace"]
+MIMIC_CSV_DIR = config[CURRENT_WORKSPACE]["mimic_csv_dir"]
+MIMIC_PARQUET_DIR = config[CURRENT_WORKSPACE]["mimic_parquet_dir"]
 CLIF_OUTPUT_DIR_NAME = config["clif_output_dir_name"]
 CLIF_VERSION = config["clif_version"]
 EXCLUDED_LABELS_DEFAULT = [
@@ -197,15 +198,6 @@ def load_mimic_table(table, file_type: {"csv", "parquet", "pq"} = None, mimic_ve
         return TABLE_CACHE[cache_key]
 
     # Define file paths
-    parquet_path = (
-        SCRIPT_DIR
-        / f"../data/mimic-data/mimic-iv-{mimic_version}/{module}/{table}.parquet"
-    )
-    csv_path = (
-        SCRIPT_DIR
-        / f"../data/mimic-data/mimic-iv-{mimic_version}/{module}/{table}.csv.gz"
-    )
-
     if file_type is not None:
         if file_type in ["pq", "parquet"]:
             if os.path.exists(parquet_path):

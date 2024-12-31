@@ -1,9 +1,13 @@
+# src/tables/adt.py
+import numpy as np
 import pandas as pd
 import logging
-from src.utils import * # load_mimic_table, save_to_rclif, rename_and_reorder_cols, load_mapping_csv, construct_mapper_dict
+from src.utils import construct_mapper_dict, load_mapping_csv, \
+    rename_and_reorder_cols, save_to_rclif, setup_logging, mimic_table_pathfinder
 
-# Define column names and mappings for the final output
-ADT_COL_NAMES = [
+setup_logging()
+
+ADT_COLUMNS = [
     "patient_id", "hospitalization_id", "hospital_id", "in_dttm", "out_dttm", "location_name", "location_category"
 ]
 
@@ -13,7 +17,7 @@ ADT_COL_RENAME_MAPPER = {
     'careunit': 'location_name'
 }
 
-def map_and_save_adt_table(mimic_transfers):
+def main():
     """
     Processes the `transfers` table to create the CLIF ADT table.
     
@@ -21,36 +25,31 @@ def map_and_save_adt_table(mimic_transfers):
         mimic_transfers (pd.DataFrame): Preloaded transfers table.
         adt_mapper_dict (dict): Dictionary for mapping care units to location categories.
     """
-    logging.info("Starting to process ADT table...")
+    logging.info("starting to build clif adt table -- ")
+    # load mapping
     adt_mapping = load_mapping_csv("adt")  
     adt_mapper_dict = construct_mapper_dict(adt_mapping, "careunit", "location_category")
 
     # Filter transfers with valid careunit and hadm_id
-    logging.info("Filtering valid transfers...")
-    adt = mimic_transfers.dropna(subset=["careunit", "hadm_id"]).copy()
-
-    # Map location categories
-    logging.info("Mapping location categories...")
+    mimic_transfers = pd.read_parquet(mimic_table_pathfinder("transfers"))
+    
+    logging.info("filtering out NA transfers...") # FIXME -- RESUME
+    adt = mimic_transfers.dropna(subset=["hadm_id"]) \
+        .query("careunit != 'UNKNOWN'")
+    
+    logging.info("mapping mimic careunit to mimic location_category...")
     adt['location_category'] = adt['careunit'].map(adt_mapper_dict)
 
-    # Rename and reorder columns
-    logging.info("Renaming and reordering columns...")
-    adt_final = rename_and_reorder_cols(adt, ADT_COL_RENAME_MAPPER, ADT_COL_NAMES)
-
-    # Cast data types
-    logging.info("Casting data types...")
+    logging.info("renaming, reordering, and re-casting columns...")
+    adt_final = rename_and_reorder_cols(adt, ADT_COL_RENAME_MAPPER, ADT_COLUMNS)
     adt_final["patient_id"] = adt_final["patient_id"].astype(str)
     adt_final['hospitalization_id'] = adt_final['hospitalization_id'].astype(int).astype(str)
     adt_final['hospital_id'] = adt_final['hospital_id'].astype(str)
     adt_final['in_dttm'] = pd.to_datetime(adt_final['in_dttm'])
     adt_final['out_dttm'] = pd.to_datetime(adt_final['out_dttm'])
 
-    # Save final output
     save_to_rclif(adt_final, "adt")
-    logging.info("ADT table processed and saved successfully.")
-    
-    return adt_final
+    logging.info("output saved to a parquet file, everything completed for the adt table!")
 
 if __name__ == "__main__":
-    mimic_transfers = load_mimic_table("hosp", "transfers")
-    adt_final = map_and_save_adt_table(mimic_transfers)
+    main()
