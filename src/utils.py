@@ -170,83 +170,6 @@ def resave_all_mimic_tables_from_csv_to_parquet(overwrite: bool = False):
     logging.info(f"resaving all {len(HOSP_TABLES + ICU_TABLES)} tables from .csv.gz to .parquet.")
     resave_select_mimic_tables_from_csv_to_parquet(HOSP_TABLES + ICU_TABLES, overwrite = overwrite)
 
-
-def load_mimic_table(table, file_type: {"csv", "parquet", "pq"} = None, mimic_version="3.1"):
-    """
-    # TODO: likely to retire this function
-    Loads a MIMIC-IV table from the specified module and caches it to avoid reloading.
-
-    Args:
-        module (str): The MIMIC module (e.g., "icu", "hosp").
-        table (str): The table name (e.g., "patients", "admissions").
-        file_type (str): The file type to load (e.g., "csv", "parquet").
-        mimic_version (str): Version of MIMIC-IV to use (default is "3.1").
-
-    Returns:
-        pd.DataFrame: The loaded table as a Pandas DataFrame.
-
-    Raises:
-        FileNotFoundError: If the specified file does not exist.
-        ValueError: If an unsupported file type is provided.
-    """
-    global TABLE_CACHE
-    cache_key = table
-
-    # Check if table is already in cache
-    if cache_key in TABLE_CACHE:
-        logging.info(f"Using cached data for {table}.")
-        return TABLE_CACHE[cache_key]
-
-    # Define file paths
-    if file_type is not None:
-        if file_type in ["pq", "parquet"]:
-            if os.path.exists(parquet_path):
-                logging.info(f"Loading {table} from {parquet_path}.")
-                table_df = pd.read_parquet(parquet_path)
-            else:
-                raise FileNotFoundError(f"Parquet file not found at {parquet_path}")
-        elif file_type == "csv":
-            if os.path.exists(csv_path):
-                logging.info(f"Loading {table} from {csv_path}.")
-                table_df = pd.read_csv(csv_path, low_memory=False)
-            else:
-                raise FileNotFoundError(f"CSV file not found at {csv_path}")
-        else:
-            raise ValueError(f"Unsupported file type: {file_type}")
-    else:
-        if os.path.exists(parquet_path):
-            logging.info(f"Reading already converted parquet file for {module}/{table}")
-            table_df = pd.read_parquet(parquet_path, engine="auto")
-        else:
-            logging.info(
-                f"No parquet file exists yet for {module}/{table}, so reading from csv"
-            )
-            table_df = pd.read_csv(csv_path, low_memory=False)
-            table_df.to_parquet(parquet_path)
-
-    # Cache the table
-    TABLE_CACHE[cache_key] = table_df
-    return table_df
-
-
-def load_mimic_tables(tables, cache=True):
-    # TODO: likely to retire
-    for module, table in tables:
-        logging.info(f"Loading {table} from module {module}")
-        var_name = table
-        if (cache) and (var_name in globals()):
-            logging.info(
-                f"Table {table} from module {module} is already loaded in memory"
-            )
-            continue
-        try:
-            globals()[var_name] = load_mimic_table(module, table)
-            logging.info(f"Successfully loaded table {table} from module {module}")
-        except Exception as e:
-            logging.error(
-                f"Error loading table: {table} from module: {module}. Error: {e}"
-            )
-
 def save_to_rclif(df: pd.DataFrame, table_name: str):
     global CLIF_OUTPUT_DIR_NAME
     if not CLIF_OUTPUT_DIR_NAME:
@@ -268,9 +191,9 @@ def read_from_rclif(table_name, file_format="pq"):
         return pd.read_parquet(SCRIPT_DIR / f"../rclif/clif_{table_name}.parquet")
 
 
-# -------
+# ----------------------
 #   ETL - mapping
-# -------
+# ----------------------
 
 def load_mapping_csv(csv_name: str, dtype=None):
     return pd.read_csv(
@@ -483,8 +406,6 @@ def fetch_mimic_events_by_eventtable(
 ):
     """
     Fetch all the events associated with a list of item ids from a given event table.
-
-    TODO: add further specification for the original argument
     """
     logging.info(f"fetching events from {table_name} table for {len(item_ids)} items")
     if original:
@@ -507,7 +428,6 @@ def fetch_mimic_events_by_eventtable(
         f"fetched {len(df)} events from {table_name} table for {len(item_ids)} items"
     )
     return df
-
 
 def fetch_mimic_events(item_ids: list[int], original: bool = False) -> pd.DataFrame:
     """
@@ -540,13 +460,225 @@ def fetch_mimic_events(item_ids: list[int], original: bool = False) -> pd.DataFr
 
 
 def item_finder_to_events(items: pd.DataFrame):
+    # TODO: unsure, may be redundant
     items = items.dropna(subset=["count"])
     itemids = items["itemid"].tolist()
     # itemid_to_label_mapper = dict(zip(items["itemid"], items["label"]))
-    events = item_ids_list_to_events_df(itemids)
+    events = fetch_mimic_events(itemids)
     events["label"] = events["itemid"].apply(item_id_to_label)
     return events
 
+
+# -----------------------------
+#   ETL - item search
+# -----------------------------
+
+def generate_item_stats_by_eventtable(item_ids: list[int], table_name: str):
+    '''
+    Calculate the frequency and value instances of a list of items in a given event table.
+    '''
+    table_path = mimic_table_pathfinder(table_name)
+    d_items_path = mimic_table_pathfinder("d_items")
+    item_ids_str = ','.join(map(str, item_ids))
+    
+    if table_name == "chartevents":
+        query = f"""
+        WITH items_select AS (
+            SELECT *
+            FROM '{d_items_path}'
+            WHERE itemid IN ({item_ids_str})
+        )
+        SELECT
+            i.itemid,
+            i.label,
+            i.abbreviation,
+            i.linksto,
+            i.category,
+            i.unitname,
+            i.param_type,
+            COUNT(*) AS count,
+            CASE
+                WHEN i.param_type = 'Numeric' THEN 
+                    CONCAT('Min: ', MIN(e.valuenum), ', Mean: ', ROUND(AVG(e.valuenum), 2), ', Max: ', MAX(e.valuenum))
+                WHEN i.param_type IN ('Text', 'Checkbox') THEN
+                    (SELECT STRING_AGG(
+                        CONCAT(value, ': ', value_count), ', ' 
+                        ORDER BY value_count DESC)
+                    FROM (
+                        SELECT value, COUNT(*) AS value_count
+                        FROM '{table_path}' AS e
+                        WHERE e.itemid = i.itemid AND value IS NOT NULL AND value <> ''
+                        GROUP BY value
+                    ) AS value_counts)
+                ELSE i.param_type
+            END AS value_instances
+        FROM items_select AS i
+            LEFT JOIN '{table_path}' AS e USING (itemid)
+        GROUP BY i.itemid, i.label, i.abbreviation, i.linksto, i.category, i.unitname, i.param_type;
+        """
+    elif table_name == "procedureevents":
+        query = f"""
+        SELECT
+            i.itemid,
+            i.label,
+            i.abbreviation,
+            i.linksto,
+            i.category,
+            i.unitname,
+            i.param_type,
+            COUNT(*) AS count,
+            CONCAT(
+                'Min: ', MIN(e.value), ', Mean: ', ROUND(AVG(e.value), 2), ', Max: ', MAX(e.value)
+            ) AS value_instances
+        FROM '{d_items_path}' AS i
+            LEFT JOIN '{table_path}' AS e USING (itemid)
+        WHERE i.itemid IN ({item_ids_str})
+        GROUP BY i.itemid, i.label, i.abbreviation, i.linksto, i.category, i.unitname, i.param_type;
+        """
+    elif table_name == "datetimeevents":
+        query = f"""
+        SELECT
+            i.itemid,
+            i.label,
+            i.abbreviation,
+            i.linksto,
+            i.category,
+            i.unitname,
+            i.param_type,
+            COUNT(*) AS count,
+            CONCAT(
+                'Earliest: ', MIN(e.value), ', Latest: ', MAX(e.value)
+            ) AS value_instances
+        FROM '{d_items_path}' AS i
+            LEFT JOIN '{table_path}' AS e USING (itemid)
+        WHERE i.itemid IN ({item_ids_str})
+        GROUP BY i.itemid, i.label, i.abbreviation, i.linksto, i.category, i.unitname, i.param_type;
+        """
+    elif table_name == "inputevents":
+        query = f"""
+        WITH items_select AS (
+            SELECT *
+            FROM '{d_items_path}'
+            WHERE itemid IN ({item_ids_str})
+        )
+        SELECT
+            i.itemid,
+            i.label,
+            i.abbreviation,
+            i.linksto,
+            i.category,
+            i.unitname,
+            i.param_type,
+            COUNT(*) AS count,
+            CONCAT(
+                'Rate: ', ROUND(MIN(e.rate), 2), ', ', ROUND(MEDIAN(e.rate), 2), ', ', ROUND(MAX(e.rate), 2), '; Amount: ', ROUND(MIN(e.amount), 2), ', ', ROUND(MEDIAN(e.amount), 2), ', ', ROUND(MAX(e.amount), 2)
+            ) AS value_instances,
+            (SELECT STRING_AGG(
+                    CONCAT(amountuom, ': ', amountuom_count), ', ' 
+                    ORDER BY amountuom_count DESC)
+                FROM (
+                    SELECT amountuom, COUNT(*) AS amountuom_count
+                    FROM '{table_path}' AS e
+                    WHERE e.itemid = i.itemid AND amountuom IS NOT NULL AND rateuom <> ''
+                    GROUP BY amountuom
+                ) AS amountuom_counts) as amountuom_instances,
+            (SELECT STRING_AGG(
+                    CONCAT(rateuom, ': ', rateuom_count), ', ' 
+                    ORDER BY rateuom_count DESC)
+                FROM (
+                    SELECT rateuom, COUNT(*) AS rateuom_count
+                    FROM '{table_path}' AS e
+                    WHERE e.itemid = i.itemid AND rateuom IS NOT NULL AND rateuom <> ''
+                    GROUP BY rateuom
+                ) AS rateuom_counts) as rateuom_instances,
+            (SELECT STRING_AGG(
+                    CONCAT(ordercategoryname, ': ', ordercategoryname_count), ', ' 
+                    ORDER BY ordercategoryname_count DESC)
+                FROM (
+                    SELECT ordercategoryname, COUNT(*) AS ordercategoryname_count
+                    FROM '{table_path}' AS e
+                    WHERE e.itemid = i.itemid AND ordercategoryname IS NOT NULL AND ordercategoryname <> ''
+                    GROUP BY ordercategoryname
+                ) AS ordercategoryname_counts) as ordercategoryname_instances,
+            (SELECT STRING_AGG(
+                    CONCAT(secondaryordercategoryname, ': ', secondaryordercategoryname_count), ', ' 
+                    ORDER BY secondaryordercategoryname_count DESC)
+                FROM (
+                    SELECT secondaryordercategoryname, COUNT(*) AS secondaryordercategoryname_count
+                    FROM '{table_path}' AS e
+                    WHERE e.itemid = i.itemid AND secondaryordercategoryname IS NOT NULL AND secondaryordercategoryname <> ''
+                    GROUP BY secondaryordercategoryname
+                ) AS secondaryordercategoryname_counts) as secondaryordercategoryname_instances,
+            (SELECT STRING_AGG(
+                    CONCAT(ordercategorydescription, ': ', ordercategorydescription_count), ', ' 
+                    ORDER BY ordercategorydescription_count DESC)
+                FROM (
+                    SELECT ordercategorydescription, COUNT(*) AS ordercategorydescription_count
+                    FROM '{table_path}' AS e
+                    WHERE e.itemid = i.itemid AND ordercategorydescription IS NOT NULL AND ordercategorydescription <> ''
+                    GROUP BY ordercategorydescription
+                ) AS ordercategorydescription_counts) as ordercategorydescription_instances
+        FROM items_select AS i
+            LEFT JOIN '{table_path}' AS e USING (itemid)
+        GROUP BY i.itemid, i.label, i.abbreviation, i.linksto, i.category, i.unitname, i.param_type;
+        """
+    elif table_name == "ingredientevents":
+        query = f"""
+        SELECT
+            i.itemid,
+            i.label,
+            i.abbreviation,
+            i.linksto,
+            i.category,
+            i.unitname,
+            i.param_type,
+            COUNT(*) AS count,
+            CONCAT(
+                'Rate: ', ROUND(MIN(e.rate), 2), ', ', ROUND(MEDIAN(e.rate), 2), ', ', ROUND(MAX(e.rate), 2), '; Amount: ', ROUND(MIN(e.amount), 2), ', ', ROUND(MEDIAN(e.amount), 2), ', ', ROUND(MAX(e.amount), 2)
+            ) AS value_instances
+        FROM '{d_items_path}' AS i
+            LEFT JOIN '{table_path}' AS e USING (itemid)
+        WHERE i.itemid IN ({item_ids_str})
+        GROUP BY i.itemid, i.label, i.abbreviation, i.linksto, i.category, i.unitname, i.param_type;
+        """
+    else:
+        raise NotImplementedError(f"Event table '{table_name}' not yet supported.")
+    df = con.execute(query).fetchdf()
+    return df
+
+def search_mimic_items(kw, col: str = "label", case_sensitive: bool = False, for_labs: bool = False, report_na = True):
+    '''
+    Search for items by keyword in the `d_items` table.
+    '''
+    logging.info(f"searching for items with keyword '{kw}' in column '{col}' with case sensitive = {case_sensitive}.")
+    kw_condition = f"{col} {'LIKE' if case_sensitive else 'ILIKE'} '%{kw}%'"
+    query = f"""
+    SELECT itemid, linksto
+    FROM '{mimic_table_pathfinder("d_items")}'
+    WHERE {kw_condition}
+    """
+    df = con.execute(query).fetchdf()
+    # check if there is any match
+    if len(df) == 0:
+        logging.warning(f"No match for '{kw}' in column '{col}' with case sensitive = {case_sensitive}.")
+        return pd.DataFrame()
+    eventtable_to_itemids_mapper = df.groupby("linksto")["itemid"].apply(list).to_dict()
+    logging.info(
+        f"identified {len(eventtable_to_itemids_mapper)} event tables to be separately queried: {list(eventtable_to_itemids_mapper.keys())}"
+    )
+    df_list = [
+        generate_item_stats_by_eventtable(item_ids, table_name)
+        for table_name, item_ids in eventtable_to_itemids_mapper.items()
+    ]
+    df_m = pd.concat(df_list).sort_values(by="count", ascending=False)
+    df_m["kw"] = kw
+    # move the kw column to the front
+    df_m = df_m[["kw"] + [col for col in df_m.columns if col != "kw"]]
+        
+    logging.info(
+        f"Found and concatenated {len(df_m)} items from across {len(eventtable_to_itemids_mapper)} event tables"
+    )
+    return df_m
 
 class ItemFinder:
     """

@@ -33,7 +33,7 @@ def main():
     # Filter transfers with valid careunit and hadm_id
     mimic_transfers = pd.read_parquet(mimic_table_pathfinder("transfers"))
     
-    logging.info("filtering out NA transfers...") # FIXME -- RESUME
+    logging.info("filtering out NA transfers...") 
     adt = mimic_transfers.dropna(subset=["hadm_id"]) \
         .query("careunit != 'UNKNOWN'")
     
