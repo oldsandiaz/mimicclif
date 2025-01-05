@@ -65,25 +65,35 @@ def main():
     mac_id_to_category_mapper = dict(zip(mac_items["itemid"], mac_items["med_category"]))
     mac_ids = mac_items["itemid"].tolist()
     
-    
+    # NEW CODE STARTS HERE
+    # load mapping 
+    mac_mapping = load_mapping_csv("mac")
+    mac_mapper = construct_mapper_dict(mac_mapping, "itemid", "med_category")
+ 
+    logging.info("parsing the mapping files to identify relevant items and fetch corresponding events...")
+    mac_item_ids = get_relevant_item_ids(
+        mapping_df = mac_mapping, 
+        decision_col = "decision", 
+        excluded_labels = ["NO MAPPING", "UNSURE", "MAPPED ELSEWHERE", "NOT AVAILABLE", "TO MAP, ELSEWHERE"]
+        ) 
 
-    mac_events = item_ids_list_to_events_df(mac_ids, original=True)
-    mac_events
+    mac_events = fetch_mimic_events(mac_item_ids)
     
-    ## ETL
-    mac_events_sim = mac_events[[
+    # s stands for simple    
+    mac_events_s = mac_events[[
         'subject_id', 'hadm_id', 'starttime',
         'endtime', 'storetime', 'statusdescription', 'itemid', 'amount', 'amountuom', 'rate',
         'rateuom', # 'orderid', 
         'linkorderid', # 'ordercategoryname',
         'totalamount', 'totalamountuom', 'originalamount', 'originalrate'
         ]].reset_index(drop = True)
-    mac_events_sim = convert_and_sort_datetime(mac_events_sim)
-    mac_events_sim
-    find_duplicates(mac_events_sim, ["hadm_id", "starttime", "endtime", "itemid", "rate"]).value_counts("itemid")
-    mac_events_sim.drop_duplicates(subset = ["hadm_id", "itemid", "starttime", "amount"], inplace = True) # FIXME
-    find_duplicates(mac_events_sim, ["hadm_id", "itemid", "starttime", "endtime"])# .value_counts("itemid")
-    mac_l = mac_events_sim.melt(
+    mac_events_s = convert_and_sort_datetime(mac_events_s)
+    
+    # RESUME
+    find_duplicates(mac_events_s, ["hadm_id", "starttime", "endtime", "itemid", "rate"]).value_counts("itemid")
+    mac_events_s.drop_duplicates(subset = ["hadm_id", "itemid", "starttime", "amount"], inplace = True) # FIXME
+    find_duplicates(mac_events_s, ["hadm_id", "itemid", "starttime", "endtime"])# .value_counts("itemid")
+    mac_l = mac_events_s.melt(
         id_vars = ["hadm_id", "itemid", "index", # "rate", "rateuom", # 
                 "amount", "amountuom", 
                 "statusdescription", "linkorderid"],
@@ -154,7 +164,7 @@ def main():
         np.setdiff1d(mac_dups_d["index"], mac_dups_dd["index"])
     )
     meds_didx_2
-    3. this left us with all the "genuine" conflicts we cann't resolve -- so we better just drop them all, unfortunately.
+    # 3. this left us with all the "genuine" conflicts we cann't resolve -- so we better just drop them all, unfortunately.
     # final dups to drop
     mac_dups_ddd = mac_dups_dd[mac_dups_dd.duplicated(subset = meds_keycols, keep = False)]
     mac_dups_ddd.head()

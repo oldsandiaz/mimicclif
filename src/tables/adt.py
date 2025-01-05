@@ -2,12 +2,15 @@
 import numpy as np
 import pandas as pd
 import logging
+from importlib import reload
+import src.utils
+reload(src.utils)
 from src.utils import construct_mapper_dict, load_mapping_csv, \
     rename_and_reorder_cols, save_to_rclif, setup_logging, mimic_table_pathfinder
 
 setup_logging()
 
-ADT_COLUMNS = [
+ADT_COL_NAMES = [
     "patient_id", "hospitalization_id", "hospital_id", "in_dttm", "out_dttm", "location_name", "location_category"
 ]
 
@@ -19,11 +22,8 @@ ADT_COL_RENAME_MAPPER = {
 
 def main():
     """
-    Processes the `transfers` table to create the CLIF ADT table.
+    Create the CLIF ADT table.
     
-    Args:
-        mimic_transfers (pd.DataFrame): Preloaded transfers table.
-        adt_mapper_dict (dict): Dictionary for mapping care units to location categories.
     """
     logging.info("starting to build clif adt table -- ")
     # load mapping
@@ -41,7 +41,7 @@ def main():
     adt['location_category'] = adt['careunit'].map(adt_mapper_dict)
 
     logging.info("renaming, reordering, and re-casting columns...")
-    adt_final = rename_and_reorder_cols(adt, ADT_COL_RENAME_MAPPER, ADT_COLUMNS)
+    adt_final = rename_and_reorder_cols(adt, ADT_COL_RENAME_MAPPER, ADT_COL_NAMES)
     adt_final["patient_id"] = adt_final["patient_id"].astype(str)
     adt_final['hospitalization_id'] = adt_final['hospitalization_id'].astype(int).astype(str)
     adt_final['hospital_id'] = adt_final['hospital_id'].astype(str)

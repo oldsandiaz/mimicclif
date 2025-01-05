@@ -97,7 +97,7 @@ def parquet_stored_in_submodules() -> bool:
     '''
     return Path(MIMIC_PARQUET_DIR + "/hosp").exists() and Path(MIMIC_PARQUET_DIR + "/icu").exists()
 
-def mimic_table_pathfinder(table: str, data_format: str = "parquet"):
+def mimic_table_pathfinder(table: str, data_format: str = "parquet") -> str:
     '''
     Return the path to a MIMIC table given the table name and data format.
     '''
@@ -170,26 +170,32 @@ def resave_all_mimic_tables_from_csv_to_parquet(overwrite: bool = False):
     logging.info(f"resaving all {len(HOSP_TABLES + ICU_TABLES)} tables from .csv.gz to .parquet.")
     resave_select_mimic_tables_from_csv_to_parquet(HOSP_TABLES + ICU_TABLES, overwrite = overwrite)
 
-def save_to_rclif(df: pd.DataFrame, table_name: str):
+def clif_table_pathfinder(table_name: str) -> str:
     global CLIF_OUTPUT_DIR_NAME
     if not CLIF_OUTPUT_DIR_NAME:
         # if it is an empty str (not specified by user), use the default syntax
         CLIF_OUTPUT_DIR_NAME = f"rclif-{CLIF_VERSION}"
-    output_path = (
+    clif_path = (
         SCRIPT_DIR / f"../output/{CLIF_OUTPUT_DIR_NAME}/clif_{table_name}.parquet"
-    ) # e.g. '../data/rclif-2.0/clif_adt.parquet'
+    ) # e.g. '../output/rclif-2.0/clif_adt.parquet'
+    return str(clif_path)
+
+def clif_test_data_pathfinder(table_name: str) -> str:
+    clif_path = (
+        SCRIPT_DIR / f"../data/test-data/test_{table_name}.csv"
+    ) # e.g. '../data/test-data/test_patient.csv'
+    return str(clif_path)
+
+def save_to_rclif(df: pd.DataFrame, table_name: str):
+    output_path = clif_table_pathfinder(table_name)
     # check if the directory exists, if not, create it
-    if not os.path.exists(output_path.parent):
-        os.makedirs(output_path.parent)
+    if not Path(output_path).parent.exists():
+        Path(output_path).parent.mkdir(parents=True)
     logging.info(f"saving {table_name} rclif table as a parquet file at {output_path}.")
     return df.to_parquet(output_path, index=False)
 
-
-def read_from_rclif(table_name, file_format="pq"):
-    # FIXME: update this when validation / testing
-    if file_format in ["pq", "parquet"]:
-        return pd.read_parquet(SCRIPT_DIR / f"../rclif/clif_{table_name}.parquet")
-
+def read_from_rclif(table_name):
+    return pd.read_parquet(clif_table_pathfinder(table_name))
 
 # ----------------------
 #   ETL - mapping
@@ -261,8 +267,8 @@ def convert_and_sort_datetime(df: pd.DataFrame, additional_cols: list[str] = Non
         additional_cols = []
     # for procedure events
     if "starttime" in df.columns and "endtime" in df.columns:
-        df["starttime"] = pd.to_datetime(df["starttime"])
-        df["endtime"] = pd.to_datetime(df["endtime"])
+        df["starttime"] = pd.to_datetime(df["starttime"], format="%Y-%m-%d %H:%M:%S")
+        df["endtime"] = pd.to_datetime(df["endtime"], format="%Y-%m-%d %H:%M:%S")
         ordered_cols = [
             "hadm_id",
             "starttime",
