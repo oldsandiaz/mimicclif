@@ -28,7 +28,7 @@ def main():
     logging.info("starting to build clif adt table -- ")
     # load mapping
     adt_mapping = load_mapping_csv("adt")  
-    adt_mapper_dict = construct_mapper_dict(adt_mapping, "careunit", "location_category")
+    adt_mapper = construct_mapper_dict(adt_mapping, "careunit", "location_category")
 
     # Filter transfers with valid careunit and hadm_id
     mimic_transfers = pd.read_parquet(mimic_table_pathfinder("transfers"))
@@ -38,7 +38,7 @@ def main():
         .query("careunit != 'UNKNOWN'")
     
     logging.info("mapping mimic careunit to mimic location_category...")
-    adt['location_category'] = adt['careunit'].map(adt_mapper_dict)
+    adt['location_category'] = adt['careunit'].map(adt_mapper)
 
     logging.info("renaming, reordering, and re-casting columns...")
     adt_final = rename_and_reorder_cols(adt, ADT_COL_RENAME_MAPPER, ADT_COL_NAMES)

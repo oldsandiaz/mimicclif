@@ -2,26 +2,35 @@ import pandas as pd
 import pytest
 from importlib import reload
 import src.utils
-reload(src.utils)
+# reload(src.utils)
 from src.utils import clif_table_pathfinder, clif_test_data_pathfinder
 from src.tables.patient import PATIENT_COL_NAMES
 
-# Read the output file
-clif_patient = pd.read_parquet(clif_table_pathfinder("patient"))
-clif_patient_test_data = pd.read_csv(clif_test_data_pathfinder("patient"))
+clif_patient_test_df = pd.read_csv(clif_test_data_pathfinder("patient"))
+patient_ids = clif_patient_test_df['patient_id'].unique()
 
-def test_patient_output():
-    for _, expected_row in clif_patient_test_data.iterrows():
-        patient_id = expected_row['patient_id']
-        actual_row = clif_patient[clif_patient['patient_id'] == str(patient_id)]
-        assert len(actual_row) == 1, f"Patient {patient_id} should have only one row."
-        for var in PATIENT_COL_NAMES:
-            if var == "patient_id":
-                continue
-            actual_val = actual_row.iloc[0][var]
-            expected_val = expected_row[var]
-            assert actual_val == expected_val, f"Patient {patient_id}'s {var} is {actual_val}, but should be {expected_val}."
+@pytest.fixture
+def clif_patient_data():
+    return pd.read_parquet(clif_table_pathfinder("patient"))
 
-# Run the test
-if __name__ == "__main__":
-    pytest.main([__file__]) 
+@pytest.fixture
+def clif_patient_test_data():
+    df = clif_patient_test_df
+    df['patient_id'] = df['patient_id'].astype(str)
+    df['birth_date'] = pd.to_datetime(df['birth_date'])
+    df['death_dttm'] = pd.to_datetime(df['death_dttm'])
+    df['language_category'] = df['language_category'].astype(str)
+    return df
+
+# Parameterize test: Each row in the test data becomes a separate test case
+@pytest.mark.parametrize("patient_id", patient_ids)
+def test_patient_output(patient_id, clif_patient_data, clif_patient_test_data):
+    expected_row = clif_patient_test_data[clif_patient_test_data['patient_id'] == patient_id]
+    actual_row = clif_patient_data[clif_patient_data['patient_id'] == str(patient_id)]
+    assert len(actual_row) == 1, f"Patient {patient_id} should have only one row."
+    for var in PATIENT_COL_NAMES:
+        if var == "patient_id":
+            continue
+        actual_val = actual_row.iloc[0][var]
+        expected_val = expected_row.iloc[0][var]
+        assert actual_val == expected_val, f"Patient {patient_id}'s {var} is {actual_val}, but should be {expected_val}."
