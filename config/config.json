@@ -7,7 +7,7 @@
         "mimic_csv_dir": "/Users/wliao0504/Library/Mobile Documents/com~apple~CloudDocs/Repo/hca-lab/CLIF-MIMIC/data/mimic-data/mimic-iv-3.1",
         "mimic_parquet_dir":"/Users/wliao0504/Library/Mobile Documents/com~apple~CloudDocs/Repo/hca-lab/CLIF-MIMIC/data/mimic-data/mimic-iv-3.1/parquet-dev-test"
     },
-    "remote": {
+    "hpc": {
         "mimic_csv_dir": "/gpfs/data/healthcare-allocate/mimic-repos/CLIF-MIMIC/data/mimic-data/mimic-iv-3.1",
         "mimic_parquet_dir":"/gpfs/data/healthcare-allocate/mimic-repos/CLIF-MIMIC/data/mimic-db/mimic-iv-3.1/parquet"
     },
@@ -15,9 +15,15 @@
     "mimic_version": "3.1",
     "clif_version": "2.1",
     "clif_tables": {
+        "patient": 1,
+        "hospitalization": 1,
         "adt": 1,
-        "patient": 0,
         "vitals": 1,
-        "dialysis": 1
+        "labs": 1,
+        "patient_assessments": 1,
+        "respiratory_support": 1,
+        "medication_admin_continuous": 1,
+        "position": 1,
+        "dialysis": 0
     }
 }

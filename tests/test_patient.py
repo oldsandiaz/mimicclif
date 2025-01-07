@@ -22,18 +22,17 @@ def clif_patient_test_data():
     df['language_category'] = df['language_category'].astype(str)
     return df
 
-# Parameterize test: Each row in the test data becomes a separate test case
 @pytest.mark.parametrize("patient_id", patient_ids)
-# @pytest.mark.skip
-def test_patient_output(patient_id, clif_patient_data, clif_patient_test_data):
+def test_patient_race_dedup(patient_id, clif_patient_data, clif_patient_test_data):
+    '''
+    Test that the patient table has only one row per patient and that the mapped race and ethnicity are as expected.
+    '''
     expected_row = clif_patient_test_data[clif_patient_test_data['patient_id'] == patient_id]
     actual_row = clif_patient_data[clif_patient_data['patient_id'] == patient_id]
-    assert len(actual_row) == 1, f"Patient {patient_id} should have only one row."
-    for var in PATIENT_COL_NAMES:
-        if var in ["patient_id", "birth_date", "language_category"]:
-            continue
-        actual_val = actual_row.iloc[0][var] if not actual_row.empty else None
-        expected_val = expected_row.iloc[0][var] if not expected_row.empty else None
+    assert len(actual_row) == 1, f"Patient {patient_id} has {len(actual_row)} rows, but should have only one row."
+    for var in ["patient_id", "race_name", "race_category", "ethnicity_name", "ethnicity_category"]:
+        actual_val = actual_row.iloc[0][var] # if not actual_row.empty else None
+        expected_val = expected_row.iloc[0][var] # if not expected_row.empty else None
         assert actual_val == expected_val, f"Patient {patient_id}'s {var} is {actual_val}, but should be {expected_val}."
 
 # RESUME -- add checking for NaT = Nat TODO

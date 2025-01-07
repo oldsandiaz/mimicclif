@@ -5,7 +5,7 @@ import duckdb
 import logging
 from importlib import reload
 import src.utils
-reload(src.utils)
+# reload(src.utils)
 from src.utils import construct_mapper_dict, load_mapping_csv, \
     rename_and_reorder_cols, save_to_rclif, setup_logging, mimic_table_pathfinder
 

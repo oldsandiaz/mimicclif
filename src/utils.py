@@ -84,7 +84,7 @@ def setup_logging(log_file: str = "logs/test.log"):
         format="%(asctime)s - %(levelname)s - %(message)s",
         handlers=[logging.FileHandler(log_file), logging.StreamHandler()],
     )
-    logging.info(f"logging initialized and saved at {log_file}")
+    logging.info(f"initialized logging at {log_file}")
 
 # -----------
 #     I/O
@@ -291,14 +291,16 @@ def convert_and_sort_datetime(df: pd.DataFrame, additional_cols: list[str] = Non
 def rename_and_reorder_cols(
     df, rename_mapper_dict: dict, new_col_order: list
 ) -> pd.DataFrame:
+    '''
+    Rename and reorder columns of a dataframe.
+    '''
     baseline_rename_mapper = {
         "subject_id": "patient_id",
         "hadm_id": "hospitalization_id",
     }
 
-    return df.rename(columns=baseline_rename_mapper | rename_mapper_dict).reindex(
-        columns=new_col_order
-    )
+    return df.rename(columns = baseline_rename_mapper | rename_mapper_dict) \
+        .reindex(columns = new_col_order)
 
 
 def find_duplicates(df: pd.DataFrame, cols: list[str] = ["hadm_id", "time", "itemid"]):
@@ -311,7 +313,6 @@ def find_duplicates(df: pd.DataFrame, cols: list[str] = ["hadm_id", "time", "ite
     """
     return df[df.duplicated(subset=cols, keep=False)]
 
-
 def check_duplicates(df: pd.DataFrame, additional_cols: list = None):
     """
     Check whether there are duplicates -- more than one populated value -- for what is supposed to be
@@ -319,12 +320,13 @@ def check_duplicates(df: pd.DataFrame, additional_cols: list = None):
     the same time during the same hospitalization, there should be only one corresponding value.
 
     Use this in post-CLIFing validation.
+    
+    - additional_cols: a list of columns to check for duplicates in addition to `hospitalization_id` and `recorded_dttm`.
     """
     if not additional_cols:
         additional_cols = []
     cols_to_check = ["hospitalization_id", "recorded_dttm"] + additional_cols
     return df[df.duplicated(subset=cols_to_check, keep=False)]
-
 
 @cache
 def item_id_to_feature_value(df: pd.DataFrame, item_id: int, col: str = "label"):
@@ -406,7 +408,6 @@ def item_id_to_events_df_old(item_id: int, original: bool = False) -> pd.DataFra
         return events_df_simplified
     # FIXME: likely an issue if data struct of different events table are different
 
-
 def fetch_mimic_events_by_eventtable(
     item_ids: list[int], table_name: str, original: bool = False
 ):
@@ -435,34 +436,43 @@ def fetch_mimic_events_by_eventtable(
     )
     return df
 
-def fetch_mimic_events(item_ids: list[int], original: bool = False) -> pd.DataFrame:
+def fetch_mimic_events(item_ids: list[int], original: bool = False, for_labs: bool = False) -> pd.DataFrame:
     """
     Takes a list of item IDs and returns a DataFrame containing all the events
     associated with those item IDs.
     """
-    # first query the d_items table to get the linksto table name for each item id
-    logging.info(
-        f"querying the d_items table to identify which event tables to be separately queried for {len(item_ids)} items"
-    )
-    query = f"""
-    SELECT itemid, linksto
-    FROM '{mimic_table_pathfinder("d_items")}'
-    WHERE itemid IN ({','.join(map(str, item_ids))})
-    """
-    df = con.execute(query).fetchdf()
-    eventtable_to_itemids_mapper = df.groupby("linksto")["itemid"].apply(list).to_dict()
-    logging.info(
-        f"identified {len(eventtable_to_itemids_mapper)} event tables to be separately queried: {list(eventtable_to_itemids_mapper.keys())}"
-    )
-    df_list = [
-        fetch_mimic_events_by_eventtable(item_ids, table_name, original=original)
-        for table_name, item_ids in eventtable_to_itemids_mapper.items()
-    ]
-    df_m = pd.concat(df_list)
-    logging.info(
-        f"concatenated {len(df_m)} events from {len(eventtable_to_itemids_mapper)} event tables"
-    )
-    return df_m
+    if for_labs:
+        query = f"""
+        SELECT *
+        FROM '{mimic_table_pathfinder("labevents")}'
+        WHERE itemid IN ({','.join(map(str, item_ids))})
+            AND hadm_id IS NOT NULL
+        """
+        df = con.execute(query).fetchdf()
+        return df
+    else:
+        logging.info(
+            f"querying the d_items table to identify which event tables to be separately queried for {len(item_ids)} items"
+        )
+        query = f"""
+        SELECT itemid, linksto
+        FROM '{mimic_table_pathfinder("d_items")}'
+        WHERE itemid IN ({','.join(map(str, item_ids))})
+        """
+        df = con.execute(query).fetchdf()
+        eventtable_to_itemids_mapper = df.groupby("linksto")["itemid"].apply(list).to_dict()
+        logging.info(
+            f"identified {len(eventtable_to_itemids_mapper)} event tables to be separately queried: {list(eventtable_to_itemids_mapper.keys())}"
+        )
+        df_list = [
+            fetch_mimic_events_by_eventtable(item_ids, table_name, original=original)
+            for table_name, item_ids in eventtable_to_itemids_mapper.items()
+        ]
+        df_m = pd.concat(df_list)
+        logging.info(
+            f"concatenated {len(df_m)} events from {len(eventtable_to_itemids_mapper)} event tables"
+        )
+        return df_m
 
 
 def item_finder_to_events(items: pd.DataFrame):
