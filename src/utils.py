@@ -34,7 +34,7 @@ EXCLUDED_LABELS_DEFAULT = [
     "MAPPED ELSEWHERE",
     "SPECIAL CASE",
     "ALREADY MAPPED",
-]  # NOTE: retire "ALREDAY MAPPED" at some pt
+]  # NOTE: retire "ALREDAY MAPPED" in the future
 HOSP_TABLES = [
     "admissions",
     "d_hcpcs",
@@ -70,6 +70,23 @@ ICU_TABLES = [
     "outputevents",
     "procedureevents",
 ]
+
+MIMIC_TABLES_NEEDED_FOR_CLIF = [
+    "admissions",
+    "d_labitems",
+    "labevents",
+    "patients",
+    "transfers",
+    "chartevents",
+    "d_items",
+    "datetimeevents",
+    "icustays",
+    "ingredientevents",
+    "inputevents",
+    "outputevents",
+    "procedureevents"
+]
+
 
 def setup_logging(log_file: str = "logs/test.log"):
     """
@@ -136,9 +153,12 @@ def resave_mimic_table_from_csv_to_parquet(table: str, overwrite: bool = False):
             logging.info(f"overwriting {table}.parquet that already exists at {mimic_table_pathfinder(table, data_format='parquet')}.")
     
     # resave the table from csv to parquet using duckdb
-    logging.info(f"resaving {table} from .csv.gz to .parquet using duckdb.")
+    logging.info(f"resaving {table} from .csv.gz to .parquet using duckdb...")
     query = f"""
-    COPY (SELECT * FROM read_csv_auto('{str(mimic_table_pathfinder(table, data_format='csv'))}'))
+    COPY (
+        SELECT * 
+        FROM read_csv_auto('{str(mimic_table_pathfinder(table, data_format='csv'))}')
+        )
     TO '{str(mimic_table_pathfinder(table, data_format='parquet'))}' (FORMAT 'PARQUET');
     """
     con.execute(query)
@@ -155,7 +175,7 @@ def resave_select_mimic_tables_from_csv_to_parquet(tables: list[str], overwrite:
     counter = 0
     for table in tables:
         counter += 1
-        logging.info(f"resaving {table} from .csv.gz to .parquet (table {counter} out of {len(tables)}).")
+        logging.info(f"resaving table {counter} out of {len(tables)}:")
         try: 
             resave_mimic_table_from_csv_to_parquet(table, overwrite = overwrite)
         except FileExistsError as e:

@@ -9,10 +9,6 @@ from src.utils import construct_mapper_dict, fetch_mimic_events, load_mapping_cs
 
 setup_logging()
 
-POSITION_COL_NAMES = [
-    "hospitalization_id", "recorded_dttm", "position_name", "position_category"
-    ]
-
 def main():
     logging.info("starting to build clif position table -- ")
     po_events = fetch_mimic_events([224093])
@@ -31,6 +27,8 @@ def main():
     """
     po_events_c = duckdb.query(query).df()
     
+    save_to_rclif(po_events_c, "position")
+    logging.info("output saved to a parquet file, everything completed for the position table!")
 
 if __name__ == "__main__":
     main()

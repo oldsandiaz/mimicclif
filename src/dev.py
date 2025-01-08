@@ -5,6 +5,7 @@ reload(src.utils)
 from src.utils import setup_logging, mimic_table_pathfinder, fetch_mimic_events, get_relevant_item_ids, construct_mapper_dict, \
     load_mapping_csv, resave_mimic_table_from_csv_to_parquet, resave_select_mimic_tables_from_csv_to_parquet, \
     generate_item_stats_by_eventtable, search_mimic_items, ItemFinder
+
 search_mimic_items(kw = "Propofol")
 
 df = generate_item_stats_by_eventtable(item_ids = [227523, 221744, 225942], table_name = "inputevents")
