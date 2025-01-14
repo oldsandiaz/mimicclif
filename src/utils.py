@@ -253,6 +253,7 @@ def construct_mapper_dict(
     # to enable a None -> None mapping
     if map_none_to_none:
         mapper_dict[None] = None
+        mapper_dict["None"] = None
 
     return mapper_dict
 

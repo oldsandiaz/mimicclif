@@ -2,6 +2,9 @@
 import numpy as np
 import pandas as pd
 import logging
+from importlib import reload
+import src.utils
+reload(src.utils)
 from src.utils import construct_mapper_dict, fetch_mimic_events, load_mapping_csv, \
     get_relevant_item_ids, find_duplicates, rename_and_reorder_cols, save_to_rclif, \
     convert_and_sort_datetime, setup_logging    
@@ -40,9 +43,18 @@ def main():
 
     resp_mapper = construct_mapper_dict(resp_mapping, "itemid", "variable")
     resp_device_mapper = construct_mapper_dict(
-        resp_device_mapping, "device_name", "device_category", excluded_item_ids = ["223848"]
+        mapping_df = resp_device_mapping, 
+        key_col = "device_name", 
+        value_col = "device_category", 
+        map_none_to_none = True,
+        excluded_item_ids = ["223848"]
         )
-    resp_mode_mapper = construct_mapper_dict(resp_mode_mapping, "mode_name", "mode_category")
+    resp_mode_mapper = construct_mapper_dict(
+        mapping_df = resp_mode_mapping, 
+        key_col = "mode_name", 
+        value_col = "mode_category", 
+        map_none_to_none = False,
+        )
     
     logging.info("parsing the mapping files to identify relevant items and fetch corresponding events...")
     resp_item_ids = get_relevant_item_ids(

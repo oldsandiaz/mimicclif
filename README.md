@@ -10,6 +10,5 @@ pip install -r requirements.txt
 python main.py
 ```
 
-
 ## TODO
-- use pyclif 
+- allow people to skip resave from csv to pq
