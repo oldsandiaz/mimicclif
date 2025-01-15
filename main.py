@@ -12,7 +12,8 @@ CLIF_TABLES_TO_BUILD = [clif_table for clif_table, to_build in CLIF_TABLES.items
 logging.info(f"identified {len(CLIF_TABLES_TO_BUILD)} clif tables to build: {CLIF_TABLES_TO_BUILD}")
 
 def main():
-    resave_select_mimic_tables_from_csv_to_parquet(tables = MIMIC_TABLES_NEEDED_FOR_CLIF, overwrite = False)
+    if config["create_mimic_parquet_from_csv"] == 1:
+        resave_select_mimic_tables_from_csv_to_parquet(tables = MIMIC_TABLES_NEEDED_FOR_CLIF, overwrite = False)
     counter = 1
     logging.info(f"--------------------------------")
     for clif_table_str in CLIF_TABLES_TO_BUILD:

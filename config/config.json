@@ -1,4 +1,5 @@
 {   "current_workspace": "default",
+    "create_mimic_parquet_from_csv": 1,
     "default": {
         "mimic_csv_dir": "",
         "mimic_parquet_dir": ""
