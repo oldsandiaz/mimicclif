@@ -1,17 +1,9 @@
-{   "current_workspace": "local_test",
-    "local": {
-        "mimic_csv_dir": "/Users/wliao0504/Library/Mobile Documents/com~apple~CloudDocs/Repo/hca-lab/CLIF-MIMIC/data/mimic-data/mimic-iv-3.1",
-        "mimic_parquet_dir":"/Users/wliao0504/Library/Mobile Documents/com~apple~CloudDocs/Repo/hca-lab/CLIF-MIMIC/data/mimic-data/mimic-iv-3.1/parquet"
+{   "current_workspace": "default",
+    "default": {
+        "mimic_csv_dir": "",
+        "mimic_parquet_dir": ""
     },
-    "local_test": {
-        "mimic_csv_dir": "/Users/wliao0504/Library/Mobile Documents/com~apple~CloudDocs/Repo/hca-lab/CLIF-MIMIC/data/mimic-data/mimic-iv-3.1",
-        "mimic_parquet_dir":"/Users/wliao0504/Library/Mobile Documents/com~apple~CloudDocs/Repo/hca-lab/CLIF-MIMIC/data/mimic-data/mimic-iv-3.1/parquet-dev-test"
-    },
-    "hpc": {
-        "mimic_csv_dir": "/gpfs/data/healthcare-allocate/mimic-repos/CLIF-MIMIC/data/mimic-data/mimic-iv-3.1",
-        "mimic_parquet_dir":"/gpfs/data/healthcare-allocate/mimic-repos/CLIF-MIMIC/data/mimic-db/mimic-iv-3.1/parquet"
-    },
-    "clif_output_dir_name": "rclif-dev-test",
+    "clif_output_dir_name": "",
     "mimic_version": "3.1",
     "clif_version": "2.1",
     "clif_tables": {
@@ -23,7 +15,6 @@
         "patient_assessments": 1,
         "respiratory_support": 1,
         "medication_admin_continuous": 1,
-        "position": 1,
-        "dialysis": 0
+        "position": 1
     }
 }
