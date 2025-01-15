@@ -12,7 +12,7 @@ Navigate to `/config/config.json` and customize a few things:
 
 2. Specify the CLIF tables you want in the next run, by setting the value of tables you want to be 1 (otherwise 0) under `"clif_tables"`. 
 
-```json
+```
 // for example, specify the json object this way when there are updates to the `vitals` and `labs` table only, so you only need to update these two tables.
 {   ...
     "clif_tables": {
