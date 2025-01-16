@@ -10,7 +10,7 @@ Navigate to `/config/config.json` and customize a few things:
     - otherwise, if you do not have a copy of MIMIC in parquet yet, set `"create_mimic_parquet_from_csv": 1` and change the `"mimic_csv_dir"` under `"default"` to the *absolute* path at which you store the compressed csv files (.csv.gz) you downloaded from PhysioNet. By default, if you leave `"mimic_parquet_dir"` as a blank `"`, the program would create a `/parquet` subdirectory under your `"mimic_csv_dir"`. Optionally, you can also elect to store it anywhere else and the program would create a directory at the alternative path you provided. 
 
 2. Specify the CLIF tables you want in the next run, by setting the value of tables you want to be 1 (otherwise 0) under `"clif_tables"`. 
-- for example, specify the json object in the following way to recreate two tables (`vitals` and `labs`) that were recently updated
+    - for example, specify the json object in the following way to recreate two tables (`vitals` and `labs`) that were recently updated:
 
 ```python
 {   ...
