@@ -12,7 +12,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 REPO_ROOT = SCRIPT_DIR.parent
 
 def load_config():
-    json_path = SCRIPT_DIR / "../config/config.json"
+    json_path = SCRIPT_DIR / "../config/config_example.json"
     with open(json_path, "r") as file:
         config = json.load(file)
     print("loaded configuration from config.json")
@@ -22,10 +22,10 @@ def load_config():
 config = load_config()
 
 # Cache to store loaded tables
-TABLE_CACHE = {}
 CURRENT_WORKSPACE = config["current_workspace"]
 MIMIC_CSV_DIR = config[CURRENT_WORKSPACE]["mimic_csv_dir"]
 MIMIC_PARQUET_DIR = config[CURRENT_WORKSPACE]["mimic_parquet_dir"]
+MIMIC_PARQUET_DIR = f"{MIMIC_CSV_DIR}/parquet" if MIMIC_PARQUET_DIR == "" else MIMIC_PARQUET_DIR
 CLIF_OUTPUT_DIR_NAME = config["clif_output_dir_name"]
 CLIF_VERSION = config["clif_version"]
 EXCLUDED_LABELS_DEFAULT = [
@@ -88,14 +88,17 @@ MIMIC_TABLES_NEEDED_FOR_CLIF = [
 ]
 
 
-def setup_logging(log_file: str = "logs/test.log"):
+def setup_logging(log_file: str = "logs/etl.log"):
     """
-    TODO: change the input arg to config
     Sets up logging for the ETL pipeline.
 
     Args:
         log_file (str): Path to the log file. Default is "logs/pipeline.log".
     """
+    # create a log file at the given path if it does not exist yet
+    if not Path(log_file).parent.exists():
+        Path(log_file).parent.mkdir(parents=True)
+    
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s - %(levelname)s - %(message)s",
@@ -106,6 +109,10 @@ def setup_logging(log_file: str = "logs/test.log"):
 # -----------
 #     I/O
 # -----------
+
+def create_dir_if_not_exists(dir_path: str):
+    if not Path(dir_path).exists():
+        Path(dir_path).mkdir(parents=True)
 
 def parquet_stored_in_submodules() -> bool:
     '''
@@ -171,6 +178,7 @@ def resave_select_mimic_tables_from_csv_to_parquet(tables: list[str], overwrite:
     - overwrite: if True, will overwrite existing parquet files under the same name; otherwise, 
     a FileExistsError will be raised, and we will skip to the next table.
     '''
+    logging.info(f"converting the following {len(tables)} mimic tables from csv to parquet: {tables}")
     # first check which tables are already converted to parquet by checking the parquet dir
     counter = 0
     for table in tables:

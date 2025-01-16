@@ -3,7 +3,9 @@ from src.tables import patient, hospitalization, adt, vitals, labs, patient_asse
     respiratory_support, medication_admin_continuous, position
 from src.utils import setup_logging, resave_all_mimic_tables_from_csv_to_parquet, \
     resave_select_mimic_tables_from_csv_to_parquet, resave_mimic_table_from_csv_to_parquet, \
-    MIMIC_TABLES_NEEDED_FOR_CLIF, config
+    MIMIC_TABLES_NEEDED_FOR_CLIF, config, MIMIC_CSV_DIR, MIMIC_PARQUET_DIR, create_dir_if_not_exists, \
+    CURRENT_WORKSPACE
+    
 
 setup_logging()
 
@@ -13,7 +15,10 @@ logging.info(f"identified {len(CLIF_TABLES_TO_BUILD)} clif tables to build: {CLI
 
 def main():
     if config["create_mimic_parquet_from_csv"] == 1:
-        resave_select_mimic_tables_from_csv_to_parquet(tables = MIMIC_TABLES_NEEDED_FOR_CLIF, overwrite = False)
+        logging.info(f"since you elected to create the mimic parquet files from csv, we first create these files:")
+        create_dir_if_not_exists(MIMIC_PARQUET_DIR)
+        overwrite = (config["overwrite_existing_mimic_parquet"] == 1)
+        resave_select_mimic_tables_from_csv_to_parquet(tables = MIMIC_TABLES_NEEDED_FOR_CLIF, overwrite = overwrite)
     counter = 1
     logging.info(f"--------------------------------")
     for clif_table_str in CLIF_TABLES_TO_BUILD:
