@@ -1,14 +1,14 @@
 {   "current_workspace": "local_test",
     "local": {
         "mimic_csv_dir": "/Users/wliao0504/Library/Mobile Documents/com~apple~CloudDocs/Repo/hca-lab/CLIF-MIMIC/data/mimic-data/mimic-iv-3.1",
-        "mimic_parquet_dir":"/Users/wliao0504/Library/Mobile Documents/com~apple~CloudDocs/Repo/hca-lab/CLIF-MIMIC/data/mimic-data/mimic-iv-3.1/parquet"
+        "mimic_parquet_dir":""
     },
     "local_test": {
         "mimic_csv_dir": "/Users/wliao0504/Library/Mobile Documents/com~apple~CloudDocs/Repo/hca-lab/CLIF-MIMIC/data/mimic-data/mimic-iv-3.1",
         "mimic_parquet_dir":"/Users/wliao0504/Library/Mobile Documents/com~apple~CloudDocs/Repo/hca-lab/CLIF-MIMIC/data/mimic-data/mimic-iv-3.1/parquet-dev-test"
     },
     "hpc": {
-        "mimic_csv_dir": "/gpfs/data/healthcare-allocate/mimic-repos/CLIF-MIMIC/data/mimic-data/mimic-iv-3.1",
+        "mimic_csv_dir": "",
         "mimic_parquet_dir":"/gpfs/data/healthcare-allocate/mimic-repos/CLIF-MIMIC/data/mimic-db/mimic-iv-3.1/parquet"
     },
     "create_mimic_parquet_from_csv": 1,

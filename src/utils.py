@@ -93,7 +93,7 @@ def setup_logging(log_file: str = "logs/etl.log"):
     Sets up logging for the ETL pipeline.
 
     Args:
-        log_file (str): Path to the log file. Default is "logs/pipeline.log".
+        log_file (str): Path to the log file. 
     """
     # create a log file at the given path if it does not exist yet
     if not Path(log_file).parent.exists():
