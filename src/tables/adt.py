@@ -42,9 +42,9 @@ def main():
 
     logging.info("renaming, reordering, and re-casting columns...")
     adt_final = rename_and_reorder_cols(adt, ADT_COL_RENAME_MAPPER, ADT_COL_NAMES)
-    adt_final["patient_id"] = adt_final["patient_id"].astype(str)
-    adt_final['hospitalization_id'] = adt_final['hospitalization_id'].astype(int).astype(str)
-    adt_final['hospital_id'] = adt_final['hospital_id'].astype(str)
+    adt_final["patient_id"] = adt_final["patient_id"].astype("string")
+    adt_final['hospitalization_id'] = adt_final['hospitalization_id'].astype(int).astype("string")
+    adt_final['hospital_id'] = adt_final['hospital_id'].astype("string")
     adt_final['in_dttm'] = pd.to_datetime(adt_final['in_dttm'])
     adt_final['out_dttm'] = pd.to_datetime(adt_final['out_dttm'])
 

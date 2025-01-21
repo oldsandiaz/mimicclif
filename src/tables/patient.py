@@ -165,11 +165,11 @@ def main():
 
     logging.info("reindexing columns and converting data types...")
     patient_final = patient_merged.reindex(columns = PATIENT_COL_NAMES)
-    patient_final["patient_id"] = patient_final["patient_id"].astype(str)
+    patient_final["patient_id"] = patient_final["patient_id"].astype("string")
     patient_final["birth_date"] = pd.to_datetime(patient_final["birth_date"])
     patient_final["death_dttm"] = pd.to_datetime(patient_final["death_dttm"])
-    patient_final["language_name"] = patient_final["language_name"].astype(str)
-    patient_final["language_category"] = patient_final["language_category"].astype(str)
+    patient_final["language_name"] = patient_final["language_name"].astype("string")
+    patient_final["language_category"] = patient_final["language_category"].astype("string")
 
     save_to_rclif(patient_final, "patient")
     logging.info("output saved to a parquet file, everything completed for the patient table!")

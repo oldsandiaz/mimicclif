@@ -89,7 +89,7 @@ def main():
         subset = ["hospitalization_id",	"recorded_dttm", "vital_category", "vital_value"], inplace = True)
 
     logging.info("converting dtypes...")
-    vitals_m["hospitalization_id"] = vitals_m["hospitalization_id"].astype(str)
+    vitals_m["hospitalization_id"] = vitals_m["hospitalization_id"].astype("string")
     vitals_m["vital_value"] = vitals_m["vital_value"].astype(float)
     vitals_m["recorded_dttm"] = pd.to_datetime(vitals_m["recorded_dttm"])
     

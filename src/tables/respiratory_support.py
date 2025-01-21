@@ -148,7 +148,7 @@ def main():
     )
     # convert dtypes:
     resp_float_cols = [col for col in resp_final.columns if "_set" in col or "_obs" in col]
-    resp_final["hospitalization_id"] = resp_final["hospitalization_id"].astype(str)
+    resp_final["hospitalization_id"] = resp_final["hospitalization_id"].astype("string")
     # resp_final["tracheostomy"] = resp_final["tracheostomy"].astype(bool)
     for col_name in resp_float_cols:
         resp_final[col_name] = resp_final[col_name].astype(float)

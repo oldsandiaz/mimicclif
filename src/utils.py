@@ -12,10 +12,10 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 REPO_ROOT = SCRIPT_DIR.parent
 
 def load_config():
-    json_path = SCRIPT_DIR / "../config/config_example.json"
+    json_path = SCRIPT_DIR / "../config/config.json"
     with open(json_path, "r") as file:
         config = json.load(file)
-    print("loaded configuration from config.json")
+    print(f"loaded configuration from {json_path}")
 
     return config
 
@@ -241,6 +241,8 @@ def construct_mapper_dict(
     value_col: str,
     map_none_to_none=False,
     excluded_item_ids: list = None,
+    decision_col: str = "decision",
+    excluded_labels: list = ["NO MAPPING", "UNSURE", "MAPPED ELSEWHERE", "ALREADY MAPPED"],
 ):
     """
     covert to a dict for df col renaming later
@@ -251,6 +253,9 @@ def construct_mapper_dict(
     if "itemid" in mapping_df.columns:
         mapping_df = mapping_df.loc[~mapping_df["itemid"].isin(excluded_item_ids),]
 
+    if decision_col in mapping_df.columns:
+        mapping_df = mapping_df.loc[~mapping_df[decision_col].isin(excluded_labels),]
+    
     mapper_dict = dict(zip(mapping_df[key_col], mapping_df[value_col]))
 
     # Replace "NO MAPPING" with NA

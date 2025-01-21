@@ -47,7 +47,7 @@ def fetch_gcs():
         gcs_cl["assessment_name"]
     )
     gcs_cl.dropna(subset = ["hadm_id"], inplace = True)
-    gcs_cl["hadm_id"] = gcs_cl["hadm_id"].astype(int).astype(str)
+    gcs_cl["hadm_id"] = gcs_cl["hadm_id"].astype(int).astype("string")
     gcs_clf = rename_and_reorder_cols(gcs_cl, {"charttime": "recorded_dttm"}, PA_COL_NAMES)
     return gcs_clf
 
@@ -253,7 +253,6 @@ def fetch_cam():
     
     return cam_icu_wclc
 
-
 def main():
     logging.info("starting to build clif patient assessments table -- ")
     pa_mcide_url = "https://raw.githubusercontent.com/clif-consortium/CLIF/main/mCIDE/clif_patient_assessment_categories.csv"
@@ -277,8 +276,8 @@ def main():
     pa_m = pd.concat([gcs, rass, braden, cam])
     
     logging.info("converting column dtypes...")
-    pa_m["hospitalization_id"] = pa_m["hospitalization_id"].astype(str)
-    pa_m["categorical_value"] = pa_m["categorical_value"].astype(str)
+    pa_m["hospitalization_id"] = pa_m["hospitalization_id"].astype("string")
+    pa_m["categorical_value"] = pa_m["categorical_value"].astype("string")
     pa_m["recorded_dttm"] = pd.to_datetime(pa_m["recorded_dttm"])
     pa_m["assessment_group"] = pa_m["assessment_group"].map(pa_category_to_group_mapper)
     

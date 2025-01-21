@@ -7,7 +7,7 @@ from src.utils import clif_table_pathfinder, clif_test_data_pathfinder
 from src.tables.patient import PATIENT_COL_NAMES
 
 clif_patient_test_df = pd.read_csv(clif_test_data_pathfinder("patient"))
-patient_ids = clif_patient_test_df['patient_id'].unique().astype(str)
+patient_ids = clif_patient_test_df['patient_id'].unique().astype("string")
 
 @pytest.fixture
 def clif_patient_data():
@@ -16,10 +16,10 @@ def clif_patient_data():
 @pytest.fixture
 def clif_patient_test_data():
     df = clif_patient_test_df
-    df['patient_id'] = df['patient_id'].astype(str)
+    df['patient_id'] = df['patient_id'].astype("string")
     df['birth_date'] = pd.to_datetime(df['birth_date'])
     df['death_dttm'] = pd.to_datetime(df['death_dttm'])
-    df['language_category'] = df['language_category'].astype(str)
+    df['language_category'] = df['language_category'].astype("string")
     return df
 
 @pytest.mark.parametrize("patient_id", patient_ids)

@@ -36,7 +36,7 @@ def main():
 
     logging.info("part 1: fetching from labevents table...")
     # labevents table has itemids with 5 digits
-    labs_items_le = labs_items[labs_items['itemid'].astype(str).str.len() == 5]
+    labs_items_le = labs_items[labs_items['itemid'].astype("string").str.len() == 5]
     labs_events_le = fetch_mimic_events(labs_items_le['itemid'], original = True, for_labs = True)
 
     labs_events_le["lab_name"] = labs_events_le["itemid"].map(labs_id_to_name_mapper)
@@ -60,7 +60,7 @@ def main():
 
     labs_events_le_c["lab_value"] = np.where(
         labs_events_le_c["itemid"].isin([50808, 51624]),
-        labs_events_le_c["lab_value_numeric"].astype(str),
+        labs_events_le_c["lab_value_numeric"].astype("string"),
         labs_events_le_c["lab_value"]
     )
     
@@ -79,13 +79,13 @@ def main():
 
     labs_events_le_c["lab_value"] = np.where(
         labs_events_le_c["itemid"].isin([51003, 52642]),
-        labs_events_le_c["lab_value_numeric"].astype(str),
+        labs_events_le_c["lab_value_numeric"].astype("string"),
         labs_events_le_c["lab_value"]
     )
     
     logging.info("part 2: fetching from chartevents table...")
     # chartevents items has 6-digit item ids 
-    labs_items_ce = labs_items[labs_items['itemid'].astype(str).str.len() == 6]
+    labs_items_ce = labs_items[labs_items['itemid'].astype("string").str.len() == 6]
     labs_events_ce = fetch_mimic_events(labs_items_ce['itemid'], original = True, for_labs = False)
     labs_events_ce["lab_name"] = labs_events_ce["itemid"].map(labs_id_to_name_mapper)
     labs_events_ce["lab_category"] = labs_events_ce["itemid"].map(labs_id_to_category_mapper)
@@ -103,7 +103,7 @@ def main():
         elif ("order" in col) or ("specimen" in col) or ("loinc" in col):
             labs_events_f[col] = ""
         elif col == "hospitalization_id":
-            labs_events_f[col] = labs_events_f[col].astype(int).astype(str)
+            labs_events_f[col] = labs_events_f[col].astype(int).astype("string")
         else:
             continue
     

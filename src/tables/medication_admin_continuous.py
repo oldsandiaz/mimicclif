@@ -28,13 +28,6 @@ MAC_COL_RENAME_MAPPER = {
 
 MAC_MCIDE_URL = "https://raw.githubusercontent.com/clif-consortium/CLIF/main/mCIDE/clif_medication_admin_continuous_med_categories.csv"
 
-def map_name_to_category(name, categories):
-    '''
-    Map a medication name to a category using fuzzy matching.
-    '''
-    match, score = process.extractOne(name, categories)
-    return match if score >= 80 else None
-
 def are_doses_close(doses):
     return (abs(doses.iloc[0] - doses.iloc[1]) / max(doses.iloc[0], doses.iloc[1])) <= 0.1
 
@@ -169,8 +162,8 @@ def main():
         # .drop(meds_didx_3, axis="index")
     
     logging.info("casting dtypes...")
-    mac_ldfd["hospitalization_id"] = mac_ldfd["hospitalization_id"].astype(str)
-    mac_ldfd["med_order_id"] = mac_ldfd["med_order_id"].astype(str)
+    mac_ldfd["hospitalization_id"] = mac_ldfd["hospitalization_id"].astype("string")
+    mac_ldfd["med_order_id"] = mac_ldfd["med_order_id"].astype("string")
     mac_ldfdf = mac_ldfd.copy()
     mac_ldfdf['med_dose'] = np.where(
         (mac_ldfdf['mar_action_name'].isin(["Stopped", "FinishedRunning", "Paused"])) & (mac_ldfdf['med_dose'].isna()),

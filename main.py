@@ -1,4 +1,5 @@
 import logging
+# from tqdm import tqdm
 from src.tables import patient, hospitalization, adt, vitals, labs, patient_assessments, \
     respiratory_support, medication_admin_continuous, position
 from src.utils import setup_logging, resave_all_mimic_tables_from_csv_to_parquet, \
@@ -6,7 +7,6 @@ from src.utils import setup_logging, resave_all_mimic_tables_from_csv_to_parquet
     MIMIC_TABLES_NEEDED_FOR_CLIF, config, MIMIC_CSV_DIR, MIMIC_PARQUET_DIR, create_dir_if_not_exists, \
     CURRENT_WORKSPACE
     
-
 setup_logging()
 
 CLIF_TABLES = config["clif_tables"]
@@ -21,6 +21,8 @@ def main():
         resave_select_mimic_tables_from_csv_to_parquet(tables = MIMIC_TABLES_NEEDED_FOR_CLIF, overwrite = overwrite)
     counter = 1
     logging.info(f"--------------------------------")
+    
+    # display the progress of the building process with tqdm
     for clif_table_str in CLIF_TABLES_TO_BUILD:
         logging.info(f"building {counter} out of {len(CLIF_TABLES_TO_BUILD)} clif tables")
         clif_table_object = globals()[clif_table_str]
@@ -30,7 +32,7 @@ def main():
             logging.error(f"error building {clif_table_str}: {e}")
         counter += 1
         logging.info(f"------------------------------")
-    logging.info("finished building all clif tables!")
+    logging.info(f"finished building all clif tables! You can view them in the /output directory.")
 
 if __name__ == "__main__":
     main()

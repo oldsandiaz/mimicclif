@@ -1,9 +1,10 @@
 {   "current_workspace": "default",
-    "create_mimic_parquet_from_csv": 1,
     "default": {
         "mimic_csv_dir": "",
         "mimic_parquet_dir": ""
     },
+    "create_mimic_parquet_from_csv": 1,
+    "overwrite_existing_mimic_parquet": 0,
     "clif_output_dir_name": "",
     "mimic_version": "3.1",
     "clif_version": "2.1",

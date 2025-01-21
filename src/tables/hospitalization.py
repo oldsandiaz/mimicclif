@@ -63,7 +63,7 @@ def main():
         elif col == "age_at_admission":
             continue
         else:
-            hosp_final[col] = hosp_final[col].astype(str)
+            hosp_final[col] = hosp_final[col].astype("string")
 
     save_to_rclif(hosp_final, "hospitalization")
     logging.info("output saved to a parquet file, everything completed for the hospitalization table!")
