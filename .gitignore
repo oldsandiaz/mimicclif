@@ -8,6 +8,7 @@ CLIF_*/
 data/mimic-data
 data/rclif-*
 data/mappings/.*
+data/test-data/
 start_jupyter.sh
 output/*
 *.parquet
