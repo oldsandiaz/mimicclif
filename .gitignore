@@ -13,7 +13,6 @@ start_jupyter.sh
 output/*
 *.parquet
 logs/*
-start_jupyter.sh
 tests/
 
 # data
@@ -22,7 +21,6 @@ mimic-data/
 rclif/
 clif-tables/
 rclif-1.0/
-
 # wget logging
 wget-log
 
