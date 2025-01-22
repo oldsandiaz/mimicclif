@@ -2,9 +2,15 @@
 This repository provides the ETL pipeline to convert the MIMIC dataset into the Common Longitudinal ICU data Format (CLIF).
 
 ## Instructions
+### Set up
+Fork your own copy of this repository, and clone to your local directory. 
+
 ### Add your configuration
+
 #### Required
-Navigate to `/config/config_template.json`, rename it to `config.json`, and customize a few things:
+
+Find `/config/config_template.json`, rename it to `config.json`, and customize a few things in this file:
+
 1. On the backend, the pipeline requires a copy of the MIMIC data in the parquet format for much faster processing. 
     - If you have already created a parquet copy of MIMIC before, you can set `"create_mimic_parquet_from_csv": 0` and provide the *absolute* path at which you store your MIMIC parquet files, at `"mimic_parquet_dir"`.
     - otherwise, if you do not have a copy of MIMIC in parquet yet, set `"create_mimic_parquet_from_csv": 1` and change the `"mimic_csv_dir"` under `"default"` to the *absolute* path at which you store the compressed csv files (.csv.gz) you downloaded from PhysioNet. By default, if you leave `"mimic_parquet_dir"` as a blank `"`, the program would create a `/parquet` subdirectory under your `"mimic_csv_dir"`. Optionally, you can also elect to store it anywhere else and the program would create a directory at the alternative path you provided. 
