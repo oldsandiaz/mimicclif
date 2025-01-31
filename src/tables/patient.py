@@ -171,6 +171,8 @@ def main():
     patient_final["language_name"] = patient_final["language_name"].astype("string")
     patient_final["language_category"] = patient_final["language_category"].astype("string")
 
+    patient_final.drop_duplicates(inplace = True)
+    
     save_to_rclif(patient_final, "patient")
     logging.info("output saved to a parquet file, everything completed for the patient table!")
 

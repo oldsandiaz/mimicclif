@@ -1,8 +1,19 @@
-# CLIF-MIMIC
-This repository provides the ETL pipeline to convert the MIMIC dataset into the Common Longitudinal ICU data Format (CLIF).
+# MIMIC-IV to CLIF ETL Pipeline
+
+This repository provides the ETL pipeline to transform MIMIC-IV database into the Common Longitudinal ICU data Format (CLIF).
+
+#### Table of contents
+- [Overview](#overview)
+- [Instructions](#instructions)
+- [Contributing](#contributing)
+- [License](#license)
+
+## Documentation
+For recent and planned future releases, see the [change log](CHANGELOG.md).
+
+For the mapping of data elements from MIMIC-IV to CLIF, see [this spreadsheet](https://docs.google.com/spreadsheets/d/1QhybvnlIuNFw0t94JPE6ei2Ei6UgzZAbGgwjwZCTtxE/edit?usp=sharing.) for details.
 
 ## Instructions
-### Set up
 Fork your own copy of this repository, and clone to your local directory. 
 
 ### Add your configuration
@@ -68,3 +79,14 @@ pip install -r requirements.txt
 # run the pipeline
 python3 main.py
 ```
+
+## Contributing
+We welcome contributions! Please:
+1. Open an issue for any feature request or bug.
+2. Follow the branch naming conventions (e.g. `feature/your-feature`).
+3. Submit a pull request (PR) for review.
+
+## License
+This project is licensed under the MIT License. 
+
+**Note:** The MIMIC-IV dataset is subject to the **PhysioNet data use agreement**, and users must obtain access through PhysioNet before processing.

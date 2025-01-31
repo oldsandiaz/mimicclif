@@ -15,7 +15,7 @@
     "overwrite_existing_mimic_parquet": 0,
     "clif_output_dir_name": "rclif-dev-test",
     "mimic_version": "3.1",
-    "clif_version": "2.1",
+    "clif_version": "2.0",
     "clif_tables": {
         "patient": 1,
         "hospitalization": 1,
