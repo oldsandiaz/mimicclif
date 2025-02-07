@@ -4,6 +4,9 @@
 
 
 ## [v0.0.1] - 2025-01-31
+### Overview
+- updated CLIF tables: `respiratory_support`, `patient`.
+
 ### Changed
 - the `device_category` mapping of "T-piece" was changed from "IMV" to "Others" pending further review
 
