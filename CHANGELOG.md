@@ -1,7 +1,10 @@
 # Changelog
+Current CLIF version: 2.0
+
+Current MIMIC-IV version: 3.1
 
 ## [Planned]
-
+- [add](https://github.com/Common-Longitudinal-ICU-data-Format/CLIF-MIMIC/issues/1) mapping for `location_type` 
 
 ## [v0.0.1] - 2025-01-31
 ### Overview
