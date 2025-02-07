@@ -16,7 +16,6 @@ def load_config():
     with open(json_path, "r") as file:
         config = json.load(file)
     print(f"loaded configuration from {json_path}")
-
     return config
 
 config = load_config()

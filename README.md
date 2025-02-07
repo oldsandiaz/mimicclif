@@ -3,7 +3,7 @@
 This repository provides the ETL pipeline to transform MIMIC-IV database into the Common Longitudinal ICU data Format (CLIF).
 
 #### Table of contents
-- [Overview](#overview)
+- [Documentation](#documentation)
 - [Instructions](#instructions)
 - [Contributing](#contributing)
 - [License](#license)
@@ -81,9 +81,9 @@ python3 main.py
 ```
 
 ## Contributing
-We welcome contributions! Please:
-1. Open an issue for any feature request or bug.
-2. Follow the branch naming conventions (e.g. `feature/your-feature`).
+To contribute to this open-source project, feel free to :
+1. Open an issue for any bug or new data request.
+2. Follow some branch naming conventions (e.g. `new-table/dialysis`).
 3. Submit a pull request (PR) for review.
 
 ## License
