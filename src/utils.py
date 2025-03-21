@@ -241,7 +241,7 @@ def construct_mapper_dict(
     map_none_to_none=False,
     excluded_item_ids: list = None,
     decision_col: str = "decision",
-    excluded_labels: list = ["NO MAPPING", "UNSURE", "MAPPED ELSEWHERE", "ALREADY MAPPED"],
+    excluded_labels: list = ["NO MAPPING", "UNSURE", "MAPPED ELSEWHERE", "ALREADY MAPPED", "NOT AVAILABLE"],
 ):
     """
     covert to a dict for df col renaming later

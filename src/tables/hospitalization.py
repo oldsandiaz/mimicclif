@@ -33,6 +33,8 @@ def main():
     discharge_mapper = construct_mapper_dict(
         discharge_mapping, "discharge_location", "disposition_category"
         )
+    # add mapping of all NA discharge_location to "missing"
+    discharge_mapper[None] = "Missing" # OR: discharge_mapper[np.nan] = 'Missing'
     mimic_admissions = pd.read_parquet(mimic_table_pathfinder("admissions"))
     mimic_patients = pd.read_parquet(mimic_table_pathfinder("patients"))
     

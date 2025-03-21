@@ -19,21 +19,30 @@ LABS_COL_RENAME_MAPPER = {
     "charttime": "lab_collect_dttm", "storetime": "lab_result_dttm", 
     "value": "lab_value", "valuenum": "lab_value_numeric", "valueuom": "reference_unit"
 }
-    
-    
+
+def extract():
+    # TODO: implement the extract function
+    pass
+
 def main():
     logging.info("starting to build clif labs table -- ")
     labs_mapping = load_mapping_csv("labs")
     # drop the row corresponding to procalcitonin which is not available in MIMIC
     labs_mapping.dropna(subset = ["itemid"], inplace = True)
     labs_mapping["itemid"] = labs_mapping["itemid"].astype(int)
-    labs_id_to_category_mapper = construct_mapper_dict(labs_mapping, "itemid", "lab_category")
+
+    # NOTE include "UNSURE" by removing it from the excluded labels, which differs from 
+    # the previous implementation below that resulted in all the NULL lab_category
+    # labs_id_to_name_mapper = dict(zip(labs_items['itemid'], labs_items['label']))
+    labs_id_to_name_mapper = construct_mapper_dict(
+        labs_mapping, "itemid", "label", excluded_labels=["NO MAPPING", "MAPPED ELSEWHERE", "ALREADY MAPPED", "NOT AVAILABLE"])
+    labs_id_to_category_mapper = construct_mapper_dict(
+        labs_mapping, "itemid", "lab_category", excluded_labels=["NO MAPPING", "MAPPED ELSEWHERE", "ALREADY MAPPED", "NOT AVAILABLE"])
     labs_items = labs_mapping.loc[
         labs_mapping["decision"].isin(["TO MAP, CONVERT UOM", "TO MAP, AS IS", "UNSURE"]),
         ["lab_category", "itemid", "label", "count"]
     ].copy()
-    labs_id_to_name_mapper = dict(zip(labs_items['itemid'], labs_items['label']))
-
+    
     logging.info("part 1: fetching from labevents table...")
     # labevents table has itemids with 5 digits
     labs_items_le = labs_items[labs_items['itemid'].astype("string").str.len() == 5]
@@ -108,7 +117,7 @@ def main():
             continue
     
     # save to an intermediate file for further eda
-    # save_to_rclif(labs_events_f, "labs_intm")
+    save_to_rclif(labs_events_f, "labs_intm")
     
     # TODO: more complex deduplication
     labs_events_f.drop_duplicates(

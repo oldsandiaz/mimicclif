@@ -5,7 +5,7 @@ import duckdb
 import logging
 from importlib import reload
 import src.utils
-# reload(src.utils)
+reload(src.utils)
 from src.utils import construct_mapper_dict, load_mapping_csv, \
     rename_and_reorder_cols, save_to_rclif, setup_logging, mimic_table_pathfinder
 
@@ -27,13 +27,42 @@ def check_multi_race_over_encounters(df, col: str = "race_category"):
         ]
     return multi_race_encounters
 
+def report_nonunique_race_ethn_across_encounters(df):
+    '''
+    Report patients with non-unique race and ethnicity across encounters.
+    '''
+    query = """
+    SELECT 
+        patient_id,
+        FIRST(race_category) as race_category,
+        FIRST(ethnicity_category) as ethnicity_category,
+        COUNT(DISTINCT race_category) AS unique_race_count,
+        COUNT(DISTINCT ethnicity_category) AS unique_ethn_count
+    FROM df
+    /* WHERE race_category NOT IN ('Other', 'Unknown') OR ethnicity_category NOT IN ('Other', 'Unknown') */
+    GROUP BY patient_id
+    HAVING unique_race_count > 1 OR unique_ethn_count > 1
+    """
+    df2 = duckdb.query(query).df()
+    n1 = (df2['unique_race_count'] > 1).sum() 
+    n2 = (df2['unique_ethn_count'] > 1).sum()
+    n_total = df.patient_id.nunique()
+    logging.info(f"number of patients with non-unique race: {n1} ({n1/n_total:.2%})")
+    logging.info(f"number of patients with non-unique ethnicity: {n2} ({n2/n_total:.2%})")
+    return n1, n2
+
+
+
+
 def main():
     logging.info("starting to build clif patient table -- ")
 
     # load mapping
     race_ethnicity_mapping = load_mapping_csv("race_ethnicity")
-    race_mapper_dict = construct_mapper_dict(race_ethnicity_mapping, "mimic_race", "race")
-    ethnicity_mapper_dict = construct_mapper_dict(race_ethnicity_mapping, "mimic_race", "ethnicity")
+    race_mapper = construct_mapper_dict(race_ethnicity_mapping, "mimic_race", "race")
+    race_mapper[None] = "Unknown"
+    ethnicity_mapper = construct_mapper_dict(race_ethnicity_mapping, "mimic_race", "ethnicity")
+    ethnicity_mapper[None] = "Unknown"
 
     # load mimic data
     mimic_patients = pd.read_parquet(mimic_table_pathfinder("patients"))
@@ -43,7 +72,8 @@ def main():
     # fetch sex (intended in CLIF) / gender (available in MIMIC) from mimic_patients
     sex = mimic_patients[["subject_id", "gender"]].copy()
     sex.columns = ["patient_id", "sex_name"]
-    sex["sex_category"] = sex["sex_name"].map(lambda x: "Female" if x == "F" else "Male")
+    sex_mapper = {"M": "Male", "F": "Female"}
+    sex["sex_category"] = sex["sex_name"].map(sex_mapper)
     
     logging.info("fetching and processing the second component of the patient table: race and ethnicity data...")
     query = """
@@ -56,8 +86,8 @@ def main():
     FROM mimic_admissions
     """
     race_ethn = duckdb.query(query).df()
-    race_ethn["race_category"] = race_ethn["race_name"].map(race_mapper_dict)
-    race_ethn["ethnicity_category"] = race_ethn["ethnicity_name"].map(ethnicity_mapper_dict)
+    race_ethn["race_category"] = race_ethn["race_name"].map(race_mapper)
+    race_ethn["ethnicity_category"] = race_ethn["ethnicity_name"].map(ethnicity_mapper)
     query = """
     SELECT 
         patient_id,
@@ -67,14 +97,14 @@ def main():
         ethnicity_name,
         ethnicity_category,
         admittime,
+        /* mark patients with 'truly' uninformative race and ethnicity, defined by both race and ethnicity being "Other" or "Unknown". */
         CASE
             WHEN (race_category IN ('Other', 'Unknown')) AND (ethnicity_category IN ('Other', 'Unknown')) THEN 1
             ELSE 0
-        END AS true_noninfo
+        END AS true_uninfo 
     FROM race_ethn
     """
-    race_ethn = duckdb.query(query).df()
-    race_ethn
+    race_ethn_uninfo = duckdb.query(query).df()
     
     query = """
     SELECT 
@@ -85,19 +115,22 @@ def main():
         ethnicity_category,
         COUNT(*) AS count,
         MAX(admittime) AS most_recent,
-        true_noninfo,
+        true_uninfo,
         ROW_NUMBER() OVER (
             PARTITION BY patient_id 
             ORDER BY 
                 count DESC, 
-                true_noninfo,
+                true_uninfo,
                 most_recent DESC
                 ) 
-            AS rn
-    FROM race_ethn
-    GROUP BY patient_id, race_name, race_category, ethnicity_name, ethnicity_category, true_noninfo
+            AS rn /* row number */
+    FROM race_ethn_uninfo
+    GROUP BY patient_id, race_name, race_category, ethnicity_name, ethnicity_category, true_uninfo
     """
     race_ethn_ranked = duckdb.query(query).df()
+    
+    # report patients with non-unique race and ethnicity across encounters
+    n1, n2 = report_nonunique_race_ethn_across_encounters(race_ethn_ranked)
     
     query = """
     SELECT 
@@ -110,44 +143,7 @@ def main():
     WHERE rn = 1
     """
     race_ethn_c = duckdb.query(query).df()
-    
-    # apply de-deduplication logic to create one-to-one mapping from patient_id to race
-    # race_ethn_informative = race_ethn.loc[~race_ethn["race_category"].isin(["Other", "Unknown"]), ]
-    # multi_race_ethn_informative = check_multi_race_over_encounters(race_ethn_informative)
-    
-    # multi_race_deduped = (
-    #     multi_race_ethn_informative.groupby('patient_id')
-    #     .apply(lambda x: (
-    #         x.groupby('race_category')
-    #         .agg(count=('race_category', 'size'),
-    #             most_recent=('admittime', 'max'))
-    #         .sort_values(['count', 'most_recent'], ascending=[False, False])
-    #         .head(1)))
-    #     .reset_index()
-    #     )
-    
-    # unique_race_mapper_dict = dict(zip(multi_race_deduped["patient_id"], multi_race_deduped["race_category"]))
 
-    # race_ethn_deduped = race_ethn.drop_duplicates(["patient_id", "race_category", "ethnicity_category"]).copy()
-
-    # race_ethn_deduped["race_category"] = np.where(
-    #     race_ethn_deduped["patient_id"].isin(multi_race_deduped["patient_id"]),
-    #     race_ethn_deduped["patient_id"].map(unique_race_mapper_dict),
-    #     race_ethn_deduped["race_category"]
-    # )
-
-    # race_ethn_deduped.drop_duplicates(["patient_id", "race_category", "ethnicity_category"], inplace=True)
-
-    # # remove the non-informative others unless they are the only race
-    # race_ethn_deduped_informative = race_ethn_deduped.groupby("patient_id").apply(
-    #     lambda gr: gr if len(gr) == 1 else gr[~gr["race_category"].isin(["Other","Unknown"])]
-    # ).reset_index(drop = True)
-    
-    # # repeat the same for ethnicity
-    # race_ethn_deduped_informative = race_ethn_deduped.groupby("patient_id").apply(
-    #     lambda gr: gr if len(gr) == 1 else gr[~gr["ethnicity_category"].isin(["Other", "Unknown", "Non-Hispanic"])]
-    # ).reset_index(drop = True)
-    
     logging.info("fetching and processing the third component: death data...")
     death = mimic_admissions[["subject_id", "deathtime"]].copy().dropna(subset=["deathtime"]).drop_duplicates()
     death.columns = ["patient_id", "death_dttm"]
@@ -159,8 +155,8 @@ def main():
     
     logging.info("merging the four components...")
     # merge
-    patient_merged = pd.merge(race_ethn_c, sex, on = "patient_id", how = "outer")
-    patient_merged = pd.merge(patient_merged, death, on = "patient_id", how = "outer")
+    patient_merged = pd.merge(race_ethn_c, sex, on = "patient_id", how = "outer", validate = "one_to_one")
+    patient_merged = pd.merge(patient_merged, death, on = "patient_id", how = "outer", validate = "one_to_one")
     # patient_merged = pd.merge(patient_merged, language, on = "patient_id", how = "outer")
 
     logging.info("reindexing columns and converting data types...")

@@ -14,6 +14,7 @@ output/*
 *.parquet
 logs/*
 tests/
+config/config.json
 
 # data
 mimic-data/
