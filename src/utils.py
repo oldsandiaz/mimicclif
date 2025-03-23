@@ -322,7 +322,7 @@ def convert_and_sort_datetime(df: pd.DataFrame, additional_cols: list[str] = Non
 
 
 def rename_and_reorder_cols(
-    df, rename_mapper_dict: dict, new_col_order: list
+    df: pd.DataFrame, rename_mapper_dict: dict, new_col_order: list
 ) -> pd.DataFrame:
     '''
     Rename and reorder columns of a dataframe.

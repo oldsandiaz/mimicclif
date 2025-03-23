@@ -52,8 +52,6 @@ def report_nonunique_race_ethn_across_encounters(df):
     return n1, n2
 
 
-
-
 def main():
     logging.info("starting to build clif patient table -- ")
 
