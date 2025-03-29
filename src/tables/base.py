@@ -9,10 +9,11 @@ import inspect
 class MimicToClifBasePipeline(ABC):
     """Base class for all ETL pipelines in the project."""
     
-    def __init__(self, clif_table_name: str):
+    def __init__(self, clif_table_name: str, dev_mode: bool = False):
         self.clif_table_name = clif_table_name
         self.logger = logging.getLogger(f"etl.{clif_table_name}")
         self.data: Optional[Dict[str, Any]] = None
+        self._dev_mode = dev_mode
         self._step_results: Dict[str, Any] = {}
         self._current_step: Optional[str] = None
         self._step_order: List[str] = []
@@ -110,15 +111,9 @@ class MimicToClifBasePipeline(ABC):
         """Run the complete pipeline."""
         self.logger.info(f"Starting {self.clif_table_name} pipeline")
         try:
-            # Run extract
-            self.data = self.extract()
-            
-            # Run transform
-            self.data = self.transform(self.data)
-            
-            # Run load
-            self.load(self.data)
-            
+            self.extract()
+            self.transform()
+            self.load()
             self.logger.info(f"Completed {self.clif_table_name} pipeline successfully")
         except Exception as e:
             self.logger.error(f"Error in {self.clif_table_name} pipeline: {e}")
@@ -134,7 +129,8 @@ class MimicToClifBasePipeline(ABC):
         """Transform the extracted data"""
         pass
         
-    def load(self, data: pd.DataFrame) -> None:
+    def load(self) -> None:
         """Load transformed data to destination"""
-        save_to_rclif(data, self.clif_table_name)
+        df = self.data['df_f']
+        save_to_rclif(df, self.clif_table_name)
         self.logger.info(f"Saved {self.clif_table_name} to parquet file")

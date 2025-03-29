@@ -3,7 +3,10 @@ import numpy as np
 import pandas as pd
 import logging
 from typing import Dict, List
-from .base import MimicToClifBasePipeline
+from importlib import reload
+import src.tables.base
+# reload(src.tables.base)
+from src.tables.base import MimicToClifBasePipeline
 from src.utils import (
     construct_mapper_dict, fetch_mimic_events, load_mapping_csv,
     get_relevant_item_ids, rename_and_reorder_cols, save_to_rclif
@@ -31,11 +34,9 @@ class LabsPipeline(MimicToClifBasePipeline):
     def __init__(self):
         super().__init__(clif_table_name="labs")
         
-    @MimicToClifBasePipeline._track_step
-    def extract(self) -> Dict[str, pd.DataFrame]:
-        """Extract lab data from MIMIC-IV tables."""
-        self.logger.info("Starting data extraction")
-        
+    def extract(self):
+        """Extract labs data from MIMIC-IV tables."""
+        logging.info("Starting data extraction")
         # Load and prepare mapping
         labs_mapping = load_mapping_csv("labs")
         # drop the row corresponding to procalcitonin which is not available in MIMIC
@@ -43,11 +44,11 @@ class LabsPipeline(MimicToClifBasePipeline):
         labs_mapping["itemid"] = labs_mapping["itemid"].astype(int)
         
         # Create mappers
-        self.labs_id_to_name_mapper = construct_mapper_dict(
+        self.id_to_name_mapper = construct_mapper_dict(
             labs_mapping, "itemid", "label", 
             excluded_labels=["NO MAPPING", "MAPPED ELSEWHERE", "ALREADY MAPPED", "NOT AVAILABLE"]
         )
-        self.labs_id_to_category_mapper = construct_mapper_dict(
+        self.id_to_category_mapper = construct_mapper_dict(
             labs_mapping, "itemid", "lab_category", 
             excluded_labels=["NO MAPPING", "MAPPED ELSEWHERE", "ALREADY MAPPED", "NOT AVAILABLE"]
         )
@@ -58,101 +59,72 @@ class LabsPipeline(MimicToClifBasePipeline):
             ["lab_category", "itemid", "label", "count"]
         ].copy()
         
-        # Extract from labevents
         self.logger.info("Extracting from labevents table")
         # labevents table has itemids with 5 digits
         labs_items_le = labs_items[labs_items['itemid'].astype("string").str.len() == 5]
-        labs_events_le = fetch_mimic_events(labs_items_le['itemid'], original=True, for_labs=True)
+        df_le = fetch_mimic_events(labs_items_le['itemid'], original=True, for_labs=True)
         
-        # Extract from chartevents
         self.logger.info("Extracting from chartevents table")
         # chartevents table has itemids with 6 digits
         labs_items_ce = labs_items[labs_items['itemid'].astype("string").str.len() == 6]
-        labs_events_ce = fetch_mimic_events(labs_items_ce['itemid'], original=True, for_labs=False)
+        df_ce = fetch_mimic_events(labs_items_ce['itemid'], original=True, for_labs=False)
         
         self.data = {
-            'labs_events_le': labs_events_le,
-            'labs_events_ce': labs_events_ce,
+            'df_le': df_le,
+            'df_ce': df_ce,
             'labs_items': labs_items
         }
-        return self.data
     
-    @MimicToClifBasePipeline._track_step
-    def transform(self, data: Dict[str, pd.DataFrame]) -> pd.DataFrame:
+    def transform(self) -> pd.DataFrame:
         """Transform the extracted lab data."""
-        self.logger.info("Starting data transformation")
         
-        # Transform labevents data
-        labs_events_le = data['labs_events_le']
-        labs_events_le = self._add_names_and_categories(labs_events_le)
+        # first process the labevents data
+        df_le_c = self._transform_le(self.data['df_le'])
         
-        labs_events_le_c = rename_and_reorder_cols(
-            labs_events_le,
-            self.COL_RENAME_MAPPER,
-            self.COL_NAMES + ["itemid"]
-        )
+        # then process the chartevents data
+        df_ce_c = self._transform_ce(self.data['df_ce'])
         
-        # Convert units of measurement
-        labs_events_le_c = self._convert_units(labs_events_le_c)
+        # merge
+        df_m = pd.concat([df_le_c, df_ce_c])
+        df_m.drop(columns = "itemid", inplace = True)
         
-        # Transform chartevents data
-        labs_events_ce = data['labs_events_ce']
-        labs_events_ce = self._add_names_and_categories(labs_events_ce)
+        # final clean
+        df_f = self._cast_columns(df_m)
+        df_f = self._remove_duplicates(df_f)
         
-        labs_events_ce_c = rename_and_reorder_cols(
-            labs_events_ce,
-            self.COL_RENAME_MAPPER,
-            self.COL_NAMES + ["itemid"]
-        )
-        
-        # Combine and clean data
-        self.logger.info("Combining and cleaning data")
-        labs_events_f = pd.concat([labs_events_le_c, labs_events_ce_c])
-        labs_events_f.drop(columns="itemid", inplace=True)
-        
-        # Clean and recast columns
-        labs_events_f = self._clean_columns(labs_events_f)
-        
-        # Save intermediate result for debugging
-        save_to_rclif(labs_events_f, "labs_intm")
-        
-        # Remove duplicates
-        labs_events_f = self._remove_duplicates(labs_events_f)
-        
-        self.data = labs_events_f
-        return self.data
-    
-    def _map_names_and_categories(self):
-        """Map to lab names and categories for both labs events from labevents table and chartevents table."""
-        # process labevents
-        labs_events_le: pd.DataFrame = self.data['labs_events_le']
-        labs_events_le["lab_name"] = labs_events_le["itemid"].map(self.labs_id_to_name_mapper)
-        labs_events_le["lab_category"] = labs_events_le["itemid"].map(self.labs_id_to_category_mapper)
-        labs_events_le_c = rename_and_reorder_cols(labs_events_le, self.COL_RENAME_MAPPER, self.COL_NAMES + ["itemid"])
+        self.data['df_f'] = df_f
 
-        # process chartevents
-        labs_events_ce: pd.DataFrame = self.data['labs_events_ce']
-        labs_events_ce["lab_name"] = labs_events_ce["itemid"].map(self.labs_id_to_name_mapper)
-        labs_events_ce["lab_category"] = labs_events_ce["itemid"].map(self.labs_id_to_category_mapper)
-        labs_events_ce_c = rename_and_reorder_cols(labs_events_ce, self.COL_RENAME_MAPPER, self.COL_NAMES + ["itemid"])
+        return df_f
 
-        # update the data attribute
-        self.data['labs_events_le'] = labs_events_le
-        self.data['labs_events_ce'] = labs_events_ce
-        self.data['labs_events_le_c'] = labs_events_le_c
-        self.data['labs_events_ce_c'] = labs_events_ce_c
-        return
-        
-    @MimicToClifBasePipeline._track_step
+    def _transform_le(self, df_le: pd.DataFrame):
+        """Process the labs data from the labevents table."""
+        df_le = self._map_names_and_categories(df_le)
+        df_le = rename_and_reorder_cols(df_le, self.COL_RENAME_MAPPER, self.COL_NAMES + ["itemid"])
+        df_le = self._convert_units(df_le)
+        return df_le
+ 
+    def _transform_ce(self, df_ce: pd.DataFrame):
+        """Process the labs data from the chartevents table."""
+        df_ce = self._map_names_and_categories(df_ce)
+        df_ce = rename_and_reorder_cols(df_ce, self.COL_RENAME_MAPPER, self.COL_NAMES + ["itemid"])
+        return df_ce
+ 
+    def _map_names_and_categories(self, df: pd.DataFrame):
+        """Add lab names and categories to the dataframe."""
+        df["lab_name"] = df["itemid"].map(self.id_to_name_mapper)
+        df["lab_category"] = df["itemid"].map(self.id_to_category_mapper)
+        return df
+         
     def _convert_units(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Convert units of measurement for specific lab values."""
-        # Convert ionized calcium from mmol/L to mg/dL
+        """Convert units of measurement for specific lab items."""
+        # for ionized (free) calcium, to convert a result from mmol/L to mg/dL, multiply the mmol/L value by 4.  
+        # https://www.abaxis.com/sites/default/files/resource-packages/Ionized%20Calcium%20CTI%20Sheete%20714179-00P.pdf
         mask_ca = df["itemid"].isin([50808, 51624])
         df.loc[mask_ca, "lab_value_numeric"] *= 4
         df.loc[mask_ca, "reference_unit"] = "mg/dL"
         df.loc[mask_ca, "lab_value"] = df.loc[mask_ca, "lab_value_numeric"].astype("string")
         
-        # Convert troponin from ng/mL to ng/L
+        # convert troponin_t and troponin_i from ng/mL to ng/L, which is to multiply by 1000
         mask_trop = df["itemid"].isin([51003, 52642])
         df.loc[mask_trop, "lab_value_numeric"] *= 1000
         df.loc[mask_trop, "reference_unit"] = "ng/L"
@@ -160,8 +132,7 @@ class LabsPipeline(MimicToClifBasePipeline):
         
         return df
     
-    @MimicToClifBasePipeline._track_step
-    def _clean_columns(self, df: pd.DataFrame) -> pd.DataFrame:
+    def _cast_columns(self, df: pd.DataFrame) -> pd.DataFrame:
         """Clean and recast columns to appropriate data types."""
         for col in df.columns:
             if "dttm" in col:
@@ -172,7 +143,6 @@ class LabsPipeline(MimicToClifBasePipeline):
                 df[col] = df[col].astype(int).astype("string")
         return df
     
-    @MimicToClifBasePipeline._track_step
     def _remove_duplicates(self, df: pd.DataFrame) -> pd.DataFrame:
         """Remove duplicate lab results."""
         df.drop_duplicates(

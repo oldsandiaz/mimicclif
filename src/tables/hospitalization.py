@@ -35,26 +35,28 @@ def main():
         )
     # add mapping of all NA discharge_location to "missing"
     discharge_mapper[None] = "Missing" # OR: discharge_mapper[np.nan] = 'Missing'
-    mimic_admissions = pd.read_parquet(mimic_table_pathfinder("admissions"))
-    mimic_patients = pd.read_parquet(mimic_table_pathfinder("patients"))
-    
-    hosp = mimic_admissions[[
-        "subject_id", "hadm_id", "admittime", "dischtime", "admission_type", "discharge_location"
-    ]].copy()
+        
+    query = """
+    SELECT 
+        subject_id,
+        hadm_id,
+        admittime,
+        dischtime,
+        admission_type,
+        discharge_location,
+        anchor_age,
+        anchor_year,
+        anchor_age + DATETIME_DIFF(admittime, DATETIME(anchor_year, 1, 1, 0, 0, 0), YEAR) AS age_at_admission
+    FROM '{mimic_table_pathfinder("admissions")}'
+    LEFT JOIN '{mimic_table_pathfinder("patients")}'
+    USING (subject_id)
+    """
+    hosp_merged = duckdb.query(query).df()
+    hosp_merged["discharge_category"] = hosp_merged["discharge_location"].map(discharge_mapper)
 
-    hosp["discharge_category"] = hosp["discharge_location"].map(discharge_mapper)
-
-    logging.info("adding demographic data to calculate age at admission...")
-    hosp_merged = pd.merge(
-        hosp, 
-        mimic_patients[["subject_id", "anchor_age", "anchor_year"]],
-        on="subject_id", 
-        how="left"
-    )
-
-    hosp_merged["age_at_admission"] = hosp_merged["anchor_age"] \
-        + pd.to_datetime(hosp_merged["admittime"]).dt.year \
-        - hosp_merged["anchor_year"]
+    # hosp_merged["age_at_admission"] = hosp_merged["anchor_age"] \
+    #     + pd.to_datetime(hosp_merged["admittime"]).dt.year \
+    #     - hosp_merged["anchor_year"]
 
     logging.info("renaming, reordering, and recasting columns...")
     hosp_final = rename_and_reorder_cols(hosp_merged, HOSP_COL_RENAME_MAPPER, HOSP_COL_NAMES)

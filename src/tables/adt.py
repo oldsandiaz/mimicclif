@@ -23,7 +23,6 @@ ADT_COL_RENAME_MAPPER = {
 def main():
     """
     Create the CLIF ADT table.
-    
     """
     logging.info("starting to build clif adt table -- ")
     # load mapping

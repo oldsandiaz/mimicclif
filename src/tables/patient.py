@@ -81,7 +81,7 @@ def main():
         race as race_name, 
         race as ethnicity_name,
         admittime as admittime
-    FROM mimic_admissions
+    FROM '{mimic_table_pathfinder("admissions")}'
     """
     race_ethn = duckdb.query(query).df()
     race_ethn["race_category"] = race_ethn["race_name"].map(race_mapper)
@@ -143,8 +143,16 @@ def main():
     race_ethn_c = duckdb.query(query).df()
 
     logging.info("fetching and processing the third component: death data...")
-    death = mimic_admissions[["subject_id", "deathtime"]].copy().dropna(subset=["deathtime"]).drop_duplicates()
-    death.columns = ["patient_id", "death_dttm"]
+    query = """
+    SELECT 
+        subject_id as patient_id,
+        deathtime as death_dttm
+    FROM '{mimic_table_pathfinder("patients")}'
+    """
+    death = duckdb.query(query).df()
+    death.dropna(subset=["death_dttm"], inplace=True)
+    death.drop_duplicates(subset=["patient_id"], inplace=True)
+    # TODO: add out of hospital death
     
     # TODO: add language data
     # logging.info("fetching and processing the fourth component: language data...") 
