@@ -6,7 +6,7 @@ from typing import Dict, List
 from importlib import reload
 import src.tables.base
 # reload(src.tables.base)
-from src.tables.base import MimicToClifBasePipeline
+from src.tables.base import MimicToClifBasePipeline, intm_store_in_dev
 from src.utils import (
     construct_mapper_dict, fetch_mimic_events, load_mapping_csv,
     get_relevant_item_ids, rename_and_reorder_cols, save_to_rclif
@@ -31,8 +31,10 @@ class LabsPipeline(MimicToClifBasePipeline):
         "valueuom": "reference_unit"
     }
     
-    def __init__(self):
+    def __init__(self, dev_mode: bool = True):
         super().__init__(clif_table_name="labs")
+        self.dev_mode = dev_mode
+        self.data = {}
         
     def extract(self):
         """Extract labs data from MIMIC-IV tables."""
@@ -59,12 +61,12 @@ class LabsPipeline(MimicToClifBasePipeline):
             ["lab_category", "itemid", "label", "count"]
         ].copy()
         
-        self.logger.info("Extracting from labevents table")
+        logging.info("Extracting from labevents table")
         # labevents table has itemids with 5 digits
         labs_items_le = labs_items[labs_items['itemid'].astype("string").str.len() == 5]
         df_le = fetch_mimic_events(labs_items_le['itemid'], original=True, for_labs=True)
         
-        self.logger.info("Extracting from chartevents table")
+        logging.info("Extracting from chartevents table")
         # chartevents table has itemids with 6 digits
         labs_items_ce = labs_items[labs_items['itemid'].astype("string").str.len() == 6]
         df_ce = fetch_mimic_events(labs_items_ce['itemid'], original=True, for_labs=False)
@@ -75,6 +77,7 @@ class LabsPipeline(MimicToClifBasePipeline):
             'labs_items': labs_items
         }
     
+    @intm_store_in_dev
     def transform(self) -> pd.DataFrame:
         """Transform the extracted lab data."""
         
@@ -89,32 +92,36 @@ class LabsPipeline(MimicToClifBasePipeline):
         df_m.drop(columns = "itemid", inplace = True)
         
         # final clean
-        df_f = self._cast_columns(df_m)
+        df_f = self._recast_columns(df_m)
         df_f = self._remove_duplicates(df_f)
         
-        self.data['df_f'] = df_f
+        self.data[self.transform.__name__] = df_f
 
         return df_f
 
+    @intm_store_in_dev
     def _transform_le(self, df_le: pd.DataFrame):
         """Process the labs data from the labevents table."""
         df_le = self._map_names_and_categories(df_le)
         df_le = rename_and_reorder_cols(df_le, self.COL_RENAME_MAPPER, self.COL_NAMES + ["itemid"])
         df_le = self._convert_units(df_le)
         return df_le
- 
+    
+    @intm_store_in_dev
     def _transform_ce(self, df_ce: pd.DataFrame):
         """Process the labs data from the chartevents table."""
         df_ce = self._map_names_and_categories(df_ce)
         df_ce = rename_and_reorder_cols(df_ce, self.COL_RENAME_MAPPER, self.COL_NAMES + ["itemid"])
         return df_ce
- 
+    
+    @intm_store_in_dev
     def _map_names_and_categories(self, df: pd.DataFrame):
         """Add lab names and categories to the dataframe."""
         df["lab_name"] = df["itemid"].map(self.id_to_name_mapper)
         df["lab_category"] = df["itemid"].map(self.id_to_category_mapper)
         return df
-         
+    
+    @intm_store_in_dev
     def _convert_units(self, df: pd.DataFrame) -> pd.DataFrame:
         """Convert units of measurement for specific lab items."""
         # for ionized (free) calcium, to convert a result from mmol/L to mg/dL, multiply the mmol/L value by 4.  
@@ -132,7 +139,8 @@ class LabsPipeline(MimicToClifBasePipeline):
         
         return df
     
-    def _cast_columns(self, df: pd.DataFrame) -> pd.DataFrame:
+    @intm_store_in_dev
+    def _recast_columns(self, df: pd.DataFrame) -> pd.DataFrame:
         """Clean and recast columns to appropriate data types."""
         for col in df.columns:
             if "dttm" in col:
@@ -143,6 +151,7 @@ class LabsPipeline(MimicToClifBasePipeline):
                 df[col] = df[col].astype(int).astype("string")
         return df
     
+    @intm_store_in_dev
     def _remove_duplicates(self, df: pd.DataFrame) -> pd.DataFrame:
         """Remove duplicate lab results."""
         df.drop_duplicates(

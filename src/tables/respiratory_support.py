@@ -131,10 +131,10 @@ class RespPipeline(MimicToClifBasePipeline):
         # Chain the transformations
         df_out = (
             df_in.pipe(self._remove_none_value_rows)
+            .pipe(self._clean_fio2_set)
             .pipe(self._remove_duplicates)
             .pipe(self._pivot_and_coalesce)
             .pipe(self._rename_reorder_recast_cols)
-            .pipe(self._clean_fio2_set)
             .pipe(self._clean_tracheostomy)
         )
         return df_out
@@ -142,14 +142,19 @@ class RespPipeline(MimicToClifBasePipeline):
     @intm_store_in_dev
     def _remove_none_value_rows(self, df: pd.DataFrame = None):
         """Remove rows where value is the string 'None'."""
-        mask = df['value'] == 'None'
+        mask = df["value"] == "None"
         none_value_rows = df[mask]
-        if none_value_rows['itemid'].nunique() == 1 and none_value_rows['itemid'].iloc[0] == 226732:
+        if (
+            none_value_rows["itemid"].nunique() == 1
+            and none_value_rows["itemid"].iloc[0] == 226732
+        ):
             # drop all rows where value is the string 'None'
             return df[~mask]
         else:
-            raise ValueError("The rows with 'None' value have itemid other than 226732 (O2 Delivery Device(s)).")
-        
+            raise ValueError(
+                "The rows with 'None' value have itemid other than 226732 (O2 Delivery Device(s))."
+            )
+
     @intm_store_in_dev
     def _remove_duplicates(self, df: pd.DataFrame = None):
         """Remove duplicates to support long-to-wide pivoting.
@@ -222,9 +227,13 @@ class RespPipeline(MimicToClifBasePipeline):
         # )
 
         # this is for actually cleaning based on item ids
-        resp_wider_in_ids = resp_events_clean.pivot(
-            index=["hadm_id", "time"], columns=["itemid"], values="value"
-        ).reset_index().rename_axis(None, axis=1)
+        resp_wider_in_ids = (
+            resp_events_clean.pivot(
+                index=["hadm_id", "time"], columns=["itemid"], values="value"
+            )
+            .reset_index()
+            .rename_axis(None, axis=1)
+        )
         resp_wider_in_ids = convert_and_sort_datetime(resp_wider_in_ids)
         # implement the coalease logic
         resp_wider_in_ids["tracheostomy"] = resp_wider_in_ids[225448].fillna(
@@ -316,6 +325,7 @@ class RespPipeline(MimicToClifBasePipeline):
         """
         ref: https://github.com/MIT-LCP/mimic-code/blob/e39825259beaa9d6bc9b99160049a5d251852aae/mimic-iv/concepts/measurement/bg.sql#L130
         """
+        value = float(value)
         if value >= 20 and value <= 100:
             return value / 100
         elif value > 1 and value < 20:
@@ -327,7 +337,11 @@ class RespPipeline(MimicToClifBasePipeline):
 
     @intm_store_in_dev
     def _clean_fio2_set(self, df: pd.DataFrame = None):
-        df["fio2_set"] = df["fio2_set"].apply(self._clean_fio2_set_helper)
+        '''
+        Apply outlier handling and drop the nulls thus generated.
+        '''        
+        df.loc[df['variable'] == 'fio2_set', 'value'] = df.loc[df['variable'] == 'fio2_set', 'value'].apply(self._clean_fio2_set_helper)
+        df.dropna(subset=['value'], inplace=True)
         return df
 
     @intm_store_in_dev
