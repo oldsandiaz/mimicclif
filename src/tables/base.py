@@ -6,6 +6,21 @@ from src.utils import save_to_rclif
 import functools
 import inspect
 
+def intm_store_in_dev(method):
+    '''
+    Decorator to add extra storage of intermediate results for debugging during development
+    (but not so for the actual prod run).
+    '''
+    @functools.wraps(method)
+    def wrapper(self, *args, **kwargs):
+        # Call the original method
+        df_out = method(self, *args, **kwargs)
+        # Store the result if in dev_mode
+        if self.dev_mode:
+            self.data[method.__name__] = df_out
+        return df_out
+    return wrapper
+
 class MimicToClifBasePipeline(ABC):
     """Base class for all ETL pipelines in the project."""
     
@@ -131,6 +146,6 @@ class MimicToClifBasePipeline(ABC):
         
     def load(self) -> None:
         """Load transformed data to destination"""
-        df = self.data['df_f']
-        save_to_rclif(df, self.clif_table_name)
+        df_out = self.data[self.transform.__name__]
+        save_to_rclif(df_out, self.clif_table_name)
         self.logger.info(f"Saved {self.clif_table_name} to parquet file")

@@ -10,7 +10,7 @@ import src.utils
 import src.tables.base
 
 # reload(src.tables.base)
-from src.tables.base import MimicToClifBasePipeline
+from src.tables.base import MimicToClifBasePipeline, intm_store_in_dev
 
 from src.utils import (
     construct_mapper_dict,
@@ -71,9 +71,12 @@ class RespPipeline(MimicToClifBasePipeline):
         "Other",
     ]
 
-    def __init__(self):
+    def __init__(self, dev_mode: bool = True):
         super().__init__(clif_table_name="respiratory_support")
+        self.dev_mode = dev_mode
+        self.data = {}
 
+    @intm_store_in_dev
     def extract(self):
         """Extract respiratory support data from MIMIC-IV tables."""
         logging.info(
@@ -116,28 +119,43 @@ class RespPipeline(MimicToClifBasePipeline):
         )
         resp_events = fetch_mimic_events(resp_item_ids)
         resp_events["variable"] = resp_events["itemid"].map(self.resp_mapper)
-        self.data = {"resp_events": resp_events}
 
+        return resp_events
+
+    @intm_store_in_dev
     def transform(self, df=None):
         """Transform the extracted respiratory support data."""
         # Get the input data
-        input_df: pd.DataFrame = self.data["resp_events"] if df is None else df
+        df_in: pd.DataFrame = self.data[self.extract.__name__] if df is None else df
 
         # Chain the transformations
-        result = (
-            input_df.pipe(self._remove_duplicates)
+        df_out = (
+            df_in.pipe(self._remove_none_value_rows)
+            .pipe(self._remove_duplicates)
             .pipe(self._pivot_and_coalesce)
             .pipe(self._rename_reorder_recast_cols)
+            .pipe(self._clean_fio2_set)
             .pipe(self._clean_tracheostomy)
         )
+        return df_out
 
-        return result
-
+    @intm_store_in_dev
+    def _remove_none_value_rows(self, df: pd.DataFrame = None):
+        """Remove rows where value is the string 'None'."""
+        mask = df['value'] == 'None'
+        none_value_rows = df[mask]
+        if none_value_rows['itemid'].nunique() == 1 and none_value_rows['itemid'].iloc[0] == 226732:
+            # drop all rows where value is the string 'None'
+            return df[~mask]
+        else:
+            raise ValueError("The rows with 'None' value have itemid other than 226732 (O2 Delivery Device(s)).")
+        
+    @intm_store_in_dev
     def _remove_duplicates(self, df: pd.DataFrame = None):
-        """Remove duplicates support long-to-wide pivoting
+        """Remove duplicates to support long-to-wide pivoting.
         two kinds of duplicates to handle: by devices and other
         """
-        resp_events: pd.DataFrame = self.data["resp_events"] if df is None else df
+        resp_events: pd.DataFrame = df
         resp_duplicates: pd.DataFrame = find_duplicates(resp_events)
 
         logging.info(
@@ -192,9 +210,8 @@ class RespPipeline(MimicToClifBasePipeline):
 
         return resp_events_clean
 
+    @intm_store_in_dev
     def _pivot_and_coalesce(self, df: pd.DataFrame = None):
-        """Pivot and coalesce the respiratory support data."""
-
         logging.info("pivoting to a wide format and coalescing duplicate columns...")
         resp_events_clean = df
         # this is for EDA
@@ -207,7 +224,7 @@ class RespPipeline(MimicToClifBasePipeline):
         # this is for actually cleaning based on item ids
         resp_wider_in_ids = resp_events_clean.pivot(
             index=["hadm_id", "time"], columns=["itemid"], values="value"
-        ).reset_index()
+        ).reset_index().rename_axis(None, axis=1)
         resp_wider_in_ids = convert_and_sort_datetime(resp_wider_in_ids)
         # implement the coalease logic
         resp_wider_in_ids["tracheostomy"] = resp_wider_in_ids[225448].fillna(
@@ -271,6 +288,7 @@ class RespPipeline(MimicToClifBasePipeline):
         )
         return resp_wider_cleaned
 
+    @intm_store_in_dev
     def _rename_reorder_recast_cols(self, df: pd.DataFrame = None):
         resp_wider_cleaned = df
         logging.info("renaming, reordering, and re-casting columns...")
@@ -294,7 +312,7 @@ class RespPipeline(MimicToClifBasePipeline):
             resp_final[col_name] = resp_final[col_name].astype(float)
         return resp_final
 
-    def _clean_fio2_set(self, value: float) -> float:
+    def _clean_fio2_set_helper(self, value: float) -> float:
         """
         ref: https://github.com/MIT-LCP/mimic-code/blob/e39825259beaa9d6bc9b99160049a5d251852aae/mimic-iv/concepts/measurement/bg.sql#L130
         """
@@ -307,6 +325,12 @@ class RespPipeline(MimicToClifBasePipeline):
         else:
             return np.nan
 
+    @intm_store_in_dev
+    def _clean_fio2_set(self, df: pd.DataFrame = None):
+        df["fio2_set"] = df["fio2_set"].apply(self._clean_fio2_set_helper)
+        return df
+
+    @intm_store_in_dev
     def _clean_tracheostomy(self, df: pd.DataFrame = None):
         resp_fc = df
         logging.info(
@@ -324,16 +348,17 @@ class RespPipeline(MimicToClifBasePipeline):
         )
         return resp_fcf
 
+    # TODO: add a validate step
+    def validate(self, df: pd.DataFrame = None):
+        """
+        check for no more null.
+        """
+        pass
+
 
 def main():
     pipeline = RespPipeline()
     pipeline.run()
-    # pipeline.extract()
-    # resp_final = pipeline.transform()
-    # save_to_rclif(resp_final, "respiratory_support")
-    logging.info(
-        "output saved to a parquet file, everything completed for the respiratory support table!"
-    )
 
 
 if __name__ == "__main__":
