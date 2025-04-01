@@ -4,6 +4,7 @@ import pandas as pd
 import logging
 from importlib import reload
 import src.utils
+import duckdb
 
 # reload(src.utils)
 
@@ -142,8 +143,9 @@ class RespPipeline(MimicToClifBasePipeline):
     @intm_store_in_dev
     def _remove_none_value_rows(self, df: pd.DataFrame = None):
         """Remove rows where value is the string 'None'."""
+        logging.info("removing rows where O2 Delivery Device(s) is the string 'None'...")
         mask = df["value"] == "None"
-        none_value_rows = df[mask]
+        none_value_rows = df[mask] # df to drop
         if (
             none_value_rows["itemid"].nunique() == 1
             and none_value_rows["itemid"].iloc[0] == 226732
@@ -323,7 +325,7 @@ class RespPipeline(MimicToClifBasePipeline):
 
     def _clean_fio2_set_helper(self, value: float) -> float:
         """
-        ref: https://github.com/MIT-LCP/mimic-code/blob/e39825259beaa9d6bc9b99160049a5d251852aae/mimic-iv/concepts/measurement/bg.sql#L130
+        This is deprecated and kept only for reference.
         """
         value = float(value)
         if value >= 20 and value <= 100:
@@ -339,9 +341,21 @@ class RespPipeline(MimicToClifBasePipeline):
     def _clean_fio2_set(self, df: pd.DataFrame = None):
         '''
         Apply outlier handling and drop the nulls thus generated.
-        '''        
-        df.loc[df['variable'] == 'fio2_set', 'value'] = df.loc[df['variable'] == 'fio2_set', 'value'].apply(self._clean_fio2_set_helper)
-        df.dropna(subset=['value'], inplace=True)
+        ref: https://github.com/MIT-LCP/mimic-code/blob/e39825259beaa9d6bc9b99160049a5d251852aae/mimic-iv/concepts/measurement/bg.sql#L130
+        '''     
+        logging.info("cleaning fio2_set...")
+        query = '''
+        UPDATE df
+        SET value = CASE
+            WHEN value >= 20 AND value <= 100 THEN value / 100
+            WHEN value > 1 AND value < 20 THEN NULL
+            WHEN value > 0.2 AND value <= 1 THEN value  
+            ELSE NULL 
+        END
+        WHERE variable = 'fio2_set'
+        '''
+        df = duckdb.query(query).df()
+        # df.dropna(subset=['value'], inplace=True)
         return df
 
     @intm_store_in_dev
