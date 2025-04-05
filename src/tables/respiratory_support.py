@@ -23,6 +23,7 @@ from src.utils import (
     save_to_rclif,
     convert_and_sort_datetime,
     setup_logging,
+    convert_tz_to_utc,
 )
 
 setup_logging()
@@ -318,6 +319,7 @@ class RespPipeline(MimicToClifBasePipeline):
         resp_final["hospitalization_id"] = resp_final["hospitalization_id"].astype(
             "string"
         )
+        resp_final["recorded_dttm"] = convert_tz_to_utc(resp_final["recorded_dttm"])
         # resp_final["tracheostomy"] = resp_final["tracheostomy"].astype(bool)
         for col_name in resp_float_cols:
             resp_final[col_name] = resp_final[col_name].astype(float)
@@ -325,7 +327,7 @@ class RespPipeline(MimicToClifBasePipeline):
 
     def _clean_fio2_set_helper(self, value: float) -> float:
         """
-        This is deprecated and kept only for reference.
+        ref: https://github.com/MIT-LCP/mimic-code/blob/e39825259beaa9d6bc9b99160049a5d251852aae/mimic-iv/concepts/measurement/bg.sql#L130
         """
         value = float(value)
         if value >= 20 and value <= 100:
@@ -341,23 +343,12 @@ class RespPipeline(MimicToClifBasePipeline):
     def _clean_fio2_set(self, df: pd.DataFrame = None):
         '''
         Apply outlier handling and drop the nulls thus generated.
-        ref: https://github.com/MIT-LCP/mimic-code/blob/e39825259beaa9d6bc9b99160049a5d251852aae/mimic-iv/concepts/measurement/bg.sql#L130
         '''     
         logging.info("cleaning fio2_set...")
-        query = '''
-        UPDATE df
-        SET value = CASE
-            WHEN value >= 20 AND value <= 100 THEN value / 100
-            WHEN value > 1 AND value < 20 THEN NULL
-            WHEN value > 0.2 AND value <= 1 THEN value  
-            ELSE NULL 
-        END
-        WHERE variable = 'fio2_set'
-        '''
-        df = duckdb.query(query).df()
-        # df.dropna(subset=['value'], inplace=True)
-        return df
-
+        mask = df['variable'] == 'fio2_set'
+        df.loc[mask, 'value'] = df.loc[mask, 'value'].apply(self._clean_fio2_set_helper)        
+        return df.dropna(subset=['value'])
+ 
     @intm_store_in_dev
     def _clean_tracheostomy(self, df: pd.DataFrame = None):
         resp_fc = df
@@ -377,7 +368,7 @@ class RespPipeline(MimicToClifBasePipeline):
         return resp_fcf
 
     # TODO: add a validate step
-    def validate(self, df: pd.DataFrame = None):
+    def _validate(self, df: pd.DataFrame = None):
         """
         check for no more null.
         """

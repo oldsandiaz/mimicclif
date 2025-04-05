@@ -7,7 +7,7 @@ import src.utils
 reload(src.utils)
 from src.utils import construct_mapper_dict, fetch_mimic_events, load_mapping_csv, \
     get_relevant_item_ids, find_duplicates, rename_and_reorder_cols, save_to_rclif, \
-    convert_and_sort_datetime, setup_logging, search_mimic_items
+    convert_and_sort_datetime, setup_logging, search_mimic_items, convert_tz_to_utc
 
 setup_logging()
 
@@ -163,6 +163,7 @@ def main():
     
     logging.info("casting dtypes...")
     mac_ldfd["hospitalization_id"] = mac_ldfd["hospitalization_id"].astype("string")
+    mac_ldfd["admin_dttm"] = convert_tz_to_utc(mac_ldfd["admin_dttm"])
     mac_ldfd["med_order_id"] = mac_ldfd["med_order_id"].astype("string")
     mac_ldfdf = mac_ldfd.copy()
     mac_ldfdf['med_dose'] = np.where(

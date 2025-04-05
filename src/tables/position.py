@@ -5,7 +5,7 @@ import logging
 import duckdb
 from src.utils import construct_mapper_dict, fetch_mimic_events, load_mapping_csv, \
     get_relevant_item_ids, find_duplicates, rename_and_reorder_cols, save_to_rclif, \
-    convert_and_sort_datetime, setup_logging, con  
+    convert_and_sort_datetime, setup_logging, con, convert_tz_to_utc
 
 setup_logging()
 
@@ -26,6 +26,7 @@ def main():
     FROM po_events
     """
     po_events_c = duckdb.query(query).df()
+    po_events_c["recorded_dttm"] = convert_tz_to_utc(po_events_c["recorded_dttm"])
     
     save_to_rclif(po_events_c, "position")
     logging.info("output saved to a parquet file, everything completed for the position table!")

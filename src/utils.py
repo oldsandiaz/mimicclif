@@ -295,6 +295,14 @@ def get_relevant_item_ids(
 #   ETL - data manipulation
 # -----------------------------
 
+def convert_tz_to_utc(series: pd.Series) -> pd.Series:
+    """
+    Convert a series of timestamps to UTC.
+    """
+    MIMIC_TZ = "US/Eastern"
+    series = series.dt.tz_localize(MIMIC_TZ, ambiguous="NaT", nonexistent="shift_forward")
+    return series.dt.tz_convert("UTC")
+
 def convert_and_sort_datetime(df: pd.DataFrame, additional_cols: list[str] = None):
     if not additional_cols:
         additional_cols = []

@@ -7,7 +7,7 @@ from importlib import reload
 import src.utils
 # reload(src.utils)
 from src.utils import construct_mapper_dict, load_mapping_csv, \
-    rename_and_reorder_cols, save_to_rclif, setup_logging, mimic_table_pathfinder
+    rename_and_reorder_cols, save_to_rclif, setup_logging, mimic_table_pathfinder, convert_tz_to_utc
 
 setup_logging()
 HOSP_COL_NAMES = [
@@ -64,6 +64,7 @@ def main():
     for col in hosp_final.columns:
         if "dttm" in col:
             hosp_final[col] = pd.to_datetime(hosp_final[col], errors="coerce")
+            hosp_final[col] = convert_tz_to_utc(hosp_final[col])
         elif col == "age_at_admission":
             continue
         else:

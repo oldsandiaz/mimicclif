@@ -8,7 +8,8 @@ import src.utils
 # reload(src.utils)
 from src.utils import construct_mapper_dict, fetch_mimic_events, load_mapping_csv, \
     get_relevant_item_ids, find_duplicates, rename_and_reorder_cols, save_to_rclif, \
-    convert_and_sort_datetime, setup_logging, con, REPO_ROOT, mimic_table_pathfinder
+    convert_and_sort_datetime, setup_logging, con, REPO_ROOT, mimic_table_pathfinder, \
+    convert_tz_to_utc
 
 setup_logging()
 
@@ -279,6 +280,7 @@ def main():
     pa_m["hospitalization_id"] = pa_m["hospitalization_id"].astype("string")
     pa_m["categorical_value"] = pa_m["categorical_value"].astype("string")
     pa_m["recorded_dttm"] = pd.to_datetime(pa_m["recorded_dttm"])
+    pa_m["recorded_dttm"] = convert_tz_to_utc(pa_m["recorded_dttm"])
     pa_m["assessment_group"] = pa_m["assessment_group"].map(pa_category_to_group_mapper)
     
     save_to_rclif(pa_m, "patient_assessments")

@@ -9,7 +9,7 @@ import src.tables.base
 from src.tables.base import MimicToClifBasePipeline, intm_store_in_dev
 from src.utils import (
     construct_mapper_dict, fetch_mimic_events, load_mapping_csv,
-    get_relevant_item_ids, rename_and_reorder_cols, save_to_rclif
+    get_relevant_item_ids, rename_and_reorder_cols, save_to_rclif, convert_tz_to_utc
 )
 
 class LabsPipeline(MimicToClifBasePipeline):
@@ -35,7 +35,8 @@ class LabsPipeline(MimicToClifBasePipeline):
         super().__init__(clif_table_name="labs")
         self.dev_mode = dev_mode
         self.data = {}
-        
+    
+    @intm_store_in_dev
     def extract(self):
         """Extract labs data from MIMIC-IV tables."""
         logging.info("Starting data extraction")
@@ -145,6 +146,7 @@ class LabsPipeline(MimicToClifBasePipeline):
         for col in df.columns:
             if "dttm" in col:
                 df[col] = pd.to_datetime(df[col])
+                df[col] = convert_tz_to_utc(df[col])
             elif any(x in col for x in ["order", "specimen", "loinc"]):
                 df[col] = ""
             elif col == "hospitalization_id":

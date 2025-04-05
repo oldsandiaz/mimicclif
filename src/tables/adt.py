@@ -6,7 +6,7 @@ from importlib import reload
 import src.utils
 reload(src.utils)
 from src.utils import construct_mapper_dict, load_mapping_csv, \
-    rename_and_reorder_cols, save_to_rclif, setup_logging, mimic_table_pathfinder
+    rename_and_reorder_cols, save_to_rclif, setup_logging, mimic_table_pathfinder, convert_tz_to_utc
 
 setup_logging()
 
@@ -47,7 +47,9 @@ def main():
     adt_final['hospitalization_id'] = adt_final['hospitalization_id'].astype(int).astype("string")
     adt_final['hospital_id'] = adt_final['hospital_id'].astype("string")
     adt_final['in_dttm'] = pd.to_datetime(adt_final['in_dttm'])
+    adt_final['in_dttm'] = convert_tz_to_utc(adt_final['in_dttm'])
     adt_final['out_dttm'] = pd.to_datetime(adt_final['out_dttm'])
+    adt_final['out_dttm'] = convert_tz_to_utc(adt_final['out_dttm'])
 
     save_to_rclif(adt_final, "adt")
     logging.info("output saved to a parquet file, everything completed for the adt table!")
