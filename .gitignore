@@ -16,6 +16,8 @@ logs/*
 tests/
 config/config.json
 
+.hamilton_cache/
+
 # data
 mimic-data/
 *moukheiber-respiratory-support-dataset/

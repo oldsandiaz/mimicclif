@@ -86,6 +86,7 @@ MIMIC_TABLES_NEEDED_FOR_CLIF = [
     "procedureevents"
 ]
 
+CLIF_DTTM_FORMAT = "YYYY-MM-DD HH:MM:SS+00:00"
 
 def setup_logging(log_file: str = "logs/etl.log"):
     """
@@ -275,7 +276,7 @@ def get_relevant_item_ids(
     decision_col: str,
     excluded_labels: list = EXCLUDED_LABELS_DEFAULT,
     excluded_item_ids: list = None,
-):
+) -> pd.Series:
     """
     Parse the mapping files to identify all the relevant item ids for a table.
     - decision_col: the col on which to apply the excluded_labels
@@ -308,8 +309,8 @@ def convert_and_sort_datetime(df: pd.DataFrame, additional_cols: list[str] = Non
         additional_cols = []
     # for procedure events
     if "starttime" in df.columns and "endtime" in df.columns:
-        df["starttime"] = pd.to_datetime(df["starttime"], format="%Y-%m-%d %H:%M:%S")
-        df["endtime"] = pd.to_datetime(df["endtime"], format="%Y-%m-%d %H:%M:%S")
+        df["starttime"] = pd.to_datetime(df["starttime"], format=CLIF_DTTM_FORMAT, unit="s")
+        df["endtime"] = pd.to_datetime(df["endtime"], format=CLIF_DTTM_FORMAT, unit="s")
         ordered_cols = [
             "hadm_id",
             "starttime",
@@ -319,11 +320,11 @@ def convert_and_sort_datetime(df: pd.DataFrame, additional_cols: list[str] = Non
         df = df.sort_values(ordered_cols).reset_index(drop=True).reset_index()
     # for chart events
     elif "charttime" in df.columns:
-        df["charttime"] = pd.to_datetime(df["charttime"])
+        df["charttime"] = pd.to_datetime(df["charttime"], format=CLIF_DTTM_FORMAT, unit="s")
         ordered_cols = ["hadm_id", "charttime", "storetime"] + additional_cols
         df = df.sort_values(ordered_cols).reset_index(drop=True).reset_index()
     elif "time" in df.columns:
-        df["time"] = pd.to_datetime(df["time"])
+        df["time"] = pd.to_datetime(df["time"], format=CLIF_DTTM_FORMAT, unit="s")
         ordered_cols = ["hadm_id", "time"] + additional_cols
         df = df.sort_values(ordered_cols)
     return df

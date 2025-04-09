@@ -1,7 +1,7 @@
 import logging
 # from tqdm import tqdm
-from src.tables import patient, hospitalization, adt, vitals, labs, patient_assessments, \
-    respiratory_support, medication_admin_continuous, position
+from src.tables import labs, patient, hospitalization, adt, respiratory_support_old, vitals, patient_assessments, \
+    medication_admin_continuous, position
 from src.utils import setup_logging, resave_all_mimic_tables_from_csv_to_parquet, \
     resave_select_mimic_tables_from_csv_to_parquet, resave_mimic_table_from_csv_to_parquet, \
     MIMIC_TABLES_NEEDED_FOR_CLIF, config, MIMIC_CSV_DIR, MIMIC_PARQUET_DIR, create_dir_if_not_exists, \
