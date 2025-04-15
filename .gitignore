@@ -17,6 +17,7 @@ tests/
 config/config.json
 
 .hamilton_cache/
+._*
 
 # data
 mimic-data/
