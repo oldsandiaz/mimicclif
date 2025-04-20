@@ -309,8 +309,8 @@ def convert_and_sort_datetime(df: pd.DataFrame, additional_cols: list[str] = Non
         additional_cols = []
     # for procedure events
     if "starttime" in df.columns and "endtime" in df.columns:
-        df["starttime"] = pd.to_datetime(df["starttime"], format=CLIF_DTTM_FORMAT, unit="s")
-        df["endtime"] = pd.to_datetime(df["endtime"], format=CLIF_DTTM_FORMAT, unit="s")
+        df["starttime"] = pd.to_datetime(df["starttime"], format=CLIF_DTTM_FORMAT)
+        df["endtime"] = pd.to_datetime(df["endtime"], format=CLIF_DTTM_FORMAT)
         ordered_cols = [
             "hadm_id",
             "starttime",
@@ -320,11 +320,11 @@ def convert_and_sort_datetime(df: pd.DataFrame, additional_cols: list[str] = Non
         df = df.sort_values(ordered_cols).reset_index(drop=True).reset_index()
     # for chart events
     elif "charttime" in df.columns:
-        df["charttime"] = pd.to_datetime(df["charttime"], format=CLIF_DTTM_FORMAT, unit="s")
+        df["charttime"] = pd.to_datetime(df["charttime"], format=CLIF_DTTM_FORMAT)
         ordered_cols = ["hadm_id", "charttime", "storetime"] + additional_cols
         df = df.sort_values(ordered_cols).reset_index(drop=True).reset_index()
     elif "time" in df.columns:
-        df["time"] = pd.to_datetime(df["time"], format=CLIF_DTTM_FORMAT, unit="s")
+        df["time"] = pd.to_datetime(df["time"], format=CLIF_DTTM_FORMAT)
         ordered_cols = ["hadm_id", "time"] + additional_cols
         df = df.sort_values(ordered_cols)
     return df
