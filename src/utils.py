@@ -512,7 +512,7 @@ def fetch_mimic_events(item_ids: list[int], original: bool = False, for_labs: bo
         ]
         df_m = pd.concat(df_list)
         logging.info(
-            f"concatenated {len(df_m)} events from {len(eventtable_to_itemids_mapper)} event tables"
+            f"concatenated {len(df_m)} events from {len(eventtable_to_itemids_mapper)} event table(s)"
         )
         return df_m
 
@@ -734,7 +734,7 @@ def search_mimic_items(kw, col: str = "label", case_sensitive: bool = False, for
     df_m = df_m[["kw"] + [col for col in df_m.columns if col != "kw"]]
         
     logging.info(
-        f"Found and concatenated {len(df_m)} items from across {len(eventtable_to_itemids_mapper)} event tables"
+        f"Found and concatenated {len(df_m)} items from across {len(eventtable_to_itemids_mapper)} event table(s)"
     )
     return df_m
 
