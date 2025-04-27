@@ -6,6 +6,7 @@ import importlib
 import duckdb
 from hamilton.function_modifiers import tag, datasaver, config, check_output
 import pandera as pa
+import json
 
 from src.utils import (
     construct_mapper_dict,
@@ -40,7 +41,7 @@ MODE_CATEGORIES = [
     "Pressure Support/CPAP",
     "Volume Support",
     "Other",
-    "Blow by", # FIXME: to be removed
+    "Blow by",
 ]
 
 CLIF_RESP_SCHEMA = pa.DataFrameSchema(
@@ -334,8 +335,7 @@ def fio2_set_cleaned(none_value_rows_removed: pd.DataFrame) -> pd.DataFrame:
     none_value_rows_removed.loc[mask, 'value'] = none_value_rows_removed.loc[mask, 'value'].apply(_clean_fio2_set_helper)        
     return none_value_rows_removed.dropna(subset=['value'])
 
-@tag(property="sink")
-@pa.check_output(schema=CLIF_RESP_SCHEMA)
+@tag(property="final")
 def tracheostomy_imputed(renamed_reordered_recasted: pd.DataFrame) -> pd.DataFrame:
     logging.info(
         "imputing whether tracheostomy had been performed at the time of observation..."
@@ -360,8 +360,23 @@ def _find_and_report_all_null_rows(df: pd.DataFrame):
         & (df["vent_brand_name"].isna())
         & (df["all_value_na"] == True)
     )
-    print(f"{mask.sum()} ({mask.mean()*100:.2f}%) rows have null in device_name, vent_brand_name, mode_name, and all value fields.")
+    logging.info(f"{mask.sum()} ({mask.mean()*100:.2f}%) rows have null in device_name, vent_brand_name, mode_name, and all value fields.")
     return df[mask]
+
+@tag(property="test")
+def schema_tested(tracheostomy_imputed: pd.DataFrame) -> bool | pa.errors.SchemaErrors:
+    logging.info("testing schema...")
+    df = tracheostomy_imputed
+    try:
+        CLIF_RESP_SCHEMA.validate(df, lazy=True)
+        return True
+    except pa.errors.SchemaErrors as exc:
+        logging.error(json.dumps(exc.message, indent=2))
+        logging.error("Schema errors and failure cases:")
+        logging.error(exc.failure_cases)
+        logging.error("\nDataFrame object that failed validation:")
+        logging.error(exc.data)
+        return exc
 
 @tag(property="test")
 def no_nulls_tested(tracheostomy_imputed: pd.DataFrame) -> bool:
@@ -380,11 +395,11 @@ def save(tracheostomy_imputed: pd.DataFrame) -> dict:
 
 def _main():
     from hamilton import driver
-    import __main__
+    import src.tables.respiratory_support as respiratory_support
     setup_logging()
     dr = (
         driver.Builder()
-        .with_modules(__main__)
+        .with_modules(respiratory_support)
         # .with_cache()
         .build()
     )
