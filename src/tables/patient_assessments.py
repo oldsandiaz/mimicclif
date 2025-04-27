@@ -335,23 +335,10 @@ def sbt_tested(sbt_fetched: pd.DataFrame) -> bool | pa.errors.SchemaErrors:
         nullable=True
     )
     
-    # PA_SCHEMA_SBT = PA_SCHEMA.update_columns(
-    #     {
-    #         "assessment_category": {
-    #             "checks": [pa.Check.unique_values_eq(['sbt_delivery_pass_fail', 'sbt_fail_reason'])]
-    #         },
-    #         "categorical_value": {
-    #             "checks": [pa.Check.unique_values_eq(['Pass', 'Fail'])], "nullable": True
-    #         }
-    #     }
-    # ) \
-    #     .remove_columns(["assessment_group"])
-    
     logging.info("testing schema...")
     try:
         assessment_category_schema.validate(sbt_fetched["assessment_category"], lazy=True)
         categorical_value_schema.validate(sbt_fetched["categorical_value"], lazy=True)
-        # PA_SCHEMA_SBT.validate(sbt_fetched, lazy=True)
         return True
     except pa.errors.SchemaErrors as exc:
         logging.error(json.dumps(exc.message, indent=2))
@@ -415,30 +402,30 @@ def save(merged_and_cleaned: pd.DataFrame) -> dict:
 def _main():
     logging.info("starting to build clif patient assessments table -- ")
     from hamilton import driver
-    import __main__
+    import src.tables.patient_assessments as patient_assessments
     setup_logging()
     dr = (
         driver.Builder()
-        .with_modules(__main__)
+        .with_modules(patient_assessments)
         # .with_cache()
         .build()
     )
     dr.execute(["save"])
 
 def _test():
-    print("testing all...")
+    logging.info("testing all...")
     from hamilton import driver
-    import __main__
+    import src.tables.patient_assessments as patient_assessments
     setup_logging()
     dr = (
         driver.Builder()
-        .with_modules(__main__)
+        .with_modules(patient_assessments)
         .build()
     )
-    all_possible_outputs = dr.list_available_variables()
-    desired_outputs = [o.name for o in all_possible_outputs
-                    if 'test' == o.tags.get('property')]
-    output = dr.execute(desired_outputs)
+    all_nodes = dr.list_available_variables()
+    test_nodes = [node.name for node in all_nodes if 'test' == node.tags.get('property')]
+    output = dr.execute(test_nodes)
+    print(output)
     return output
 
 if __name__ == "__main__":
