@@ -52,7 +52,7 @@ def report_nonunique_race_ethn_across_encounters(df):
     return n1, n2
 
 
-def main():
+def _main():
     logging.info("starting to build clif patient table -- ")
 
     # load mapping
@@ -62,19 +62,22 @@ def main():
     ethnicity_mapper = construct_mapper_dict(race_ethnicity_mapping, "mimic_race", "ethnicity")
     ethnicity_mapper[None] = "Unknown"
 
-    # load mimic data
-    mimic_patients = pd.read_parquet(mimic_table_pathfinder("patients"))
-    mimic_admissions = pd.read_parquet(mimic_table_pathfinder("admissions"))
-    
     logging.info("fetching and processing the first component of the patient table: sex/gender data...")
     # fetch sex (intended in CLIF) / gender (available in MIMIC) from mimic_patients
-    sex = mimic_patients[["subject_id", "gender"]].copy()
-    sex.columns = ["patient_id", "sex_name"]
-    sex_mapper = {"M": "Male", "F": "Female"}
-    sex["sex_category"] = sex["sex_name"].map(sex_mapper)
+    query = f"""
+    SELECT 
+        subject_id as patient_id,
+        gender as sex_name,
+        CASE WHEN gender = 'M' THEN 'Male'
+             WHEN gender = 'F' THEN 'Female'
+             ELSE NULL
+        END AS sex_category
+    FROM '{mimic_table_pathfinder("patients")}'
+    """
+    sex = duckdb.query(query).df()
     
     logging.info("fetching and processing the second component of the patient table: race and ethnicity data...")
-    query = """
+    query = f"""
     SELECT 
         subject_id as patient_id, 
         hadm_id as hospitalization_id,
@@ -143,11 +146,11 @@ def main():
     race_ethn_c = duckdb.query(query).df()
 
     logging.info("fetching and processing the third component: death data...")
-    query = """
+    query = f"""
     SELECT 
         subject_id as patient_id,
         deathtime as death_dttm
-    FROM '{mimic_table_pathfinder("patients")}'
+    FROM '{mimic_table_pathfinder("admissions")}'
     """
     death = duckdb.query(query).df()
     death.dropna(subset=["death_dttm"], inplace=True)
@@ -179,4 +182,4 @@ def main():
     logging.info("output saved to a parquet file, everything completed for the patient table!")
 
 if __name__ == "__main__":
-    main()
+    _main()
