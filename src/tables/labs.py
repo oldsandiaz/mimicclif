@@ -42,7 +42,7 @@ CLIF_LABS_SCHEMA = pa.DataFrameSchema(
             checks=[all_null_check],
             nullable=True),
         "lab_collect_dttm": pa.Column(pd.DatetimeTZDtype(unit="us", tz="UTC"), nullable=False),
-        "lab_result_dttm": pa.Column(pd.DatetimeTZDtype(unit="us", tz="UTC"), nullable=True), # FIXME: this should be changed to nullable=False once we finish debugging the NA issue
+        "lab_result_dttm": pa.Column(pd.DatetimeTZDtype(unit="us", tz="UTC"), nullable=False), 
         "lab_order_name": pa.Column(str, checks=[all_null_check], nullable=True),
         "lab_order_category": pa.Column(str, checks=[all_null_check], nullable=True),
         "lab_name": pa.Column(str, nullable=False),
@@ -209,10 +209,14 @@ def columns_recast(merged: pd.DataFrame) -> pd.DataFrame:
             merged[col] = merged[col].astype(int).astype("string")
     return merged
 
+def null_result_dttm_removed(columns_recast: pd.DataFrame) -> pd.DataFrame:
+    df = columns_recast    
+    return df.dropna(subset=["lab_result_dttm"])    
+
 @cache(format="parquet")
-def duplicates_removed(columns_recast: pd.DataFrame) -> pd.DataFrame:
+def duplicates_removed(null_result_dttm_removed: pd.DataFrame) -> pd.DataFrame:
     """Remove duplicate lab results."""
-    df = columns_recast
+    df = null_result_dttm_removed
     logging.info("starting duplicates removal...")
     df.drop_duplicates(
         subset=["hospitalization_id", "lab_collect_dttm", "lab_result_dttm", 
@@ -258,6 +262,21 @@ def _main():
         .build()
     )
     dr.execute(["save"])
+
+def _test():
+    logging.info("testing all...")
+    from hamilton import driver
+    import src.tables.labs as labs
+    setup_logging()
+    dr = (
+        driver.Builder()
+        .with_modules(labs)
+        .build()
+    )
+    all_nodes = dr.list_available_variables()
+    test_nodes = [node.name for node in all_nodes if 'test' == node.tags.get('property')]
+    output = dr.execute(test_nodes)
+    return output
 
 if __name__ == "__main__":
     _main()
