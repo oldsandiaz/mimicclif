@@ -10,23 +10,38 @@ from src.utils import construct_mapper_dict, fetch_mimic_events, load_mapping_cs
     get_relevant_item_ids, find_duplicates, rename_and_reorder_cols, save_to_rclif, \
     convert_and_sort_datetime, setup_logging, con, REPO_ROOT, mimic_table_pathfinder, \
     convert_tz_to_utc
-
+from hamilton.function_modifiers import tag, datasaver, config, cache, dataloader
+import pandera as pa
+import json
 setup_logging()
-
-GCS_MAPPER = {"gcs": "gcs_total", "gcs_eyes": "gcs_eye"}
 
 PA_COL_NAMES = [
     "hospitalization_id", "recorded_dttm", "assessment_name", "assessment_category",
     "assessment_group", "numerical_value", "categorical_value", "text_value"
     ]
 
-PA_COLS_RENAME_MAPPER = {
-    "time": "recorded_dttm", "value": "text_value"
-}
+PA_SCHEMA = pa.DataFrameSchema(
+    {
+        "hospitalization_id": pa.Column(str, nullable=False),
+        "recorded_dttm": pa.Column(pd.DatetimeTZDtype(unit="us", tz="UTC"), nullable=False),
+        "assessment_name": pa.Column(str, nullable=False),
+        "assessment_category": pa.Column(str, nullable=False),
+        "assessment_group": pa.Column(str, nullable=False),
+        "numerical_value": pa.Column(float, nullable=True),
+        "categorical_value": pa.Column(str, nullable=True),
+        "text_value": pa.Column(str, nullable=True),
+    }
+)
 
-def fetch_gcs():
-    icustays = pd.read_parquet(mimic_table_pathfinder("icustays"))
-    hadmid_stayid = icustays[["hadm_id", "stay_id"]].drop_duplicates()
+def hadmid_to_stayid() -> pd.DataFrame:
+    query = f"""
+    SELECT DISTINCT
+        hadm_id, stay_id
+    FROM '{mimic_table_pathfinder("icustays")}'
+    """
+    return con.execute(query).fetchdf()
+
+def gcs_fetched(hadmid_to_stayid: pd.DataFrame) -> pd.DataFrame:
     logging.info("executing official MIMIC script to fetch GCS data...")
     gcs_sql_path = REPO_ROOT / 'src/tables/patient_assessments_gcs.sql'
     with open(str(gcs_sql_path), 'r') as file:
@@ -36,7 +51,7 @@ def fetch_gcs():
     
     logging.info("pivoting and cleaning GCS data...")
     gcs_c = pd.merge(
-        gcs, hadmid_stayid, on = "stay_id", how = "left"
+        gcs, hadmid_to_stayid, on = "stay_id", how = "left"
     )
     gcs_cl = pd.melt(
         gcs_c, id_vars = ["subject_id", "hadm_id", "charttime"], 
@@ -44,7 +59,7 @@ def fetch_gcs():
         var_name = "assessment_name", value_name = "numerical_value")
     gcs_cl["assessment_category"] = np.where(
         gcs_cl["assessment_name"].isin(["gcs", "gcs_eyes"]),
-        gcs_cl["assessment_name"].map(GCS_MAPPER),
+        gcs_cl["assessment_name"].map({"gcs": "gcs_total", "gcs_eyes": "gcs_eye"}),
         gcs_cl["assessment_name"]
     )
     gcs_cl.dropna(subset = ["hadm_id"], inplace = True)
@@ -53,18 +68,26 @@ def fetch_gcs():
     return gcs_clf
 
 
-def fetch_rass():
+def rass_fetched() -> pd.DataFrame:
+    logging.info("fetching RASS data...")
     rass_events = fetch_mimic_events([228096])
     rass_events = convert_and_sort_datetime(rass_events)
     rass_events['numerical_value'] = rass_events['value'].str.slice(0,3).astype(float)
     rass_events["assessment_name"] = "Richmond-RAS Scale"
     rass_events["assessment_category"] = "RASS"
-    rass_events_clean = rename_and_reorder_cols(rass_events, PA_COLS_RENAME_MAPPER, PA_COL_NAMES)
+    rass_events_clean = rename_and_reorder_cols(
+        df = rass_events, 
+        rename_mapper_dict = {
+            "time": "recorded_dttm", "value": "text_value"
+        }, 
+        new_col_order = PA_COL_NAMES
+    )
     rass_events_clean.drop_duplicates(
         subset=["hospitalization_id", "recorded_dttm", "assessment_category", "numerical_value"], inplace = True)
     return rass_events_clean
 
-def fetch_braden():
+def braden_fetched() -> pd.DataFrame:
+    logging.info("fetching Braden data...")
     braden = fetch_mimic_events([224054, 224055, 224056, 224057, 224058, 224059])
     query = f"""
     PIVOT braden
@@ -156,7 +179,7 @@ def fetch_braden():
         hadm_id as hospitalization_id,
         time as recorded_dttm,
         CASE
-            WHEN assessment_category = 'braden_total' THEN NULL
+            WHEN assessment_category = 'braden_total' THEN 'COMPUTED FROM SUB-SCORES; NOT ORIGINALLY AVAILABLE IN MIMIC-IV'
             WHEN assessment_category = 'braden_activity' THEN 'Braden Activity'
             WHEN assessment_category = 'braden_friction' THEN 'Braden Friction/Shear'
             WHEN assessment_category = 'braden_mobility' THEN 'Braden Mobility'
@@ -173,10 +196,13 @@ def fetch_braden():
     braden_mf = con.execute(query).fetchdf()
     return braden_mf
 
-def fetch_cam():
-    cam_icu = fetch_mimic_events(
+def cam_extracted() -> pd.DataFrame:
+    logging.info("fetching CAM data...")
+    return fetch_mimic_events(
         [228300, 228337, 229326, 228301, 228336, 229325, 228302, 228334, 228303, 228335, 229324]
     )
+
+def cam_wide(cam_extracted: pd.DataFrame) -> pd.DataFrame:
     query = f"""
     PIVOT (
         SELECT
@@ -187,19 +213,21 @@ def fetch_cam():
                 ELSE label
             END AS label,
             value
-        FROM cam_icu
+        FROM cam_extracted
     )
     ON label
     USING FIRST(value)
     GROUP BY hadm_id, time
     """
-    cam_icu_w = con.execute(query).fetchdf()
+    return con.execute(query).fetchdf()
 
-    # delirious = Yes if 
-    # (mental = True) AND (inattention = True) AND (LOC OR thinking = True)
-    # which implies that delirious = No
-    # if mental = False OR inattention = False OR (LOC = False AND thinking = False)
-
+def cam_total_computed(cam_wide: pd.DataFrame) -> pd.DataFrame:
+    '''
+    delirious = Yes if 
+    (mental = True) AND (inattention = True) AND (LOC OR thinking = True)
+    which implies that delirious = No
+    if mental = False OR inattention = False OR (LOC = False AND thinking = False)
+    '''
     query = f"""
     SELECT
         hadm_id, time, COLUMNS('CAM-ICU'),
@@ -213,79 +241,206 @@ def fetch_cam():
                 OR ("CAM-ICU Inattention" LIKE '%No%') 
                 OR (("CAM-ICU Disorganized thinking" LIKE '%No%') AND (loc LIKE '%No%'))
                 THEN 'Negative'
-            ELSE NULL
+            ELSE NULL   
             END AS cam_total
-    FROM cam_icu_w
+    FROM cam_wide
     """
-    cam_icu_wc = con.execute(query).fetchdf()
+    return con.execute(query).fetchdf()
+ 
+def cam_long(cam_total_computed: pd.DataFrame) -> pd.DataFrame:
     # unpivot (from wide to long) 
     query = f"""
     UNPIVOT (
         SELECT
             COLUMNS(* EXCLUDE ('loc'))
-        FROM cam_icu_wc
+        FROM cam_total_computed
     )
     ON COLUMNS('CAM-ICU|cam')
     INTO
         NAME assessment_name
         VALUE categorical_value;
     """
-    cam_icu_wcl = con.execute(query).fetchdf()
+    return con.execute(query).fetchdf()
+
+def cam_fetched(cam_long: pd.DataFrame) -> pd.DataFrame:
     query = f"""
     SELECT
         hadm_id as hospitalization_id,
         time as recorded_dttm,
         CASE
             WHEN assessment_name = 'CAM-ICU MS Change' THEN 'cam_mental'
-            WHEN assessment_name = 'cam_total' THEN 'cam_total'
+            WHEN assessment_name = 'cam_total' THEN assessment_name
             WHEN assessment_name = 'CAM-ICU Inattention' THEN 'cam_inattention'
             WHEN assessment_name = 'CAM-ICU Disorganized thinking' THEN 'cam_thinking'
             WHEN assessment_name in ('CAM-ICU RASS LOC', 'CAM-ICU Altered LOC') THEN 'cam_loc'
             ELSE NULL
             END AS assessment_category,
         CASE
-            WHEN assessment_name = 'cam_total' THEN NULL
+            WHEN assessment_name = 'cam_total' THEN 'COMPUTED FROM SUB-SCORES; NOT ORIGINALLY AVAILABLE IN MIMIC-IV'
             ELSE assessment_name
             END AS assessment_name,
         categorical_value
-    FROM cam_icu_wcl
+    FROM cam_long
     """
-    cam_icu_wclc = con.execute(query).fetchdf()
+    return con.execute(query).fetchdf()
     
-    return cam_icu_wclc
+def sbt_id_to_category_mapper() -> dict:
+    return {
+        224717: "sbt_delivery_pass_fail",
+        224833: "sbt_fail_reason",
+        224716: "sbt_fail_reason"
+    }
 
-def main():
-    logging.info("starting to build clif patient assessments table -- ")
+def sbt_extracted() -> pd.DataFrame:
+    logging.info("fetching SBT data...")
+    return fetch_mimic_events([224717, 224833, 224716]) 
+
+def sbt_translated(sbt_id_to_category_mapper: dict, sbt_extracted: pd.DataFrame) -> pd.DataFrame:
+    return sbt_extracted.assign(
+        assessment_category = lambda x: x["itemid"].map(sbt_id_to_category_mapper)
+    )
+   
+def sbt_fetched(sbt_translated: pd.DataFrame) -> pd.DataFrame:
+    query = f"""
+    SELECT
+        CAST(hadm_id as VARCHAR) as hospitalization_id,
+        time as recorded_dttm,
+        label as assessment_name,
+        assessment_category,
+        CAST(NULL as DOUBLE) as numerical_value,
+        CASE WHEN assessment_category = 'sbt_delivery_pass_fail' 
+            THEN (CASE WHEN value = 'Yes' THEN 'Pass' 
+                WHEN value = 'No' THEN 'Fail' 
+                ELSE NULL END) 
+            ELSE NULL
+            END AS categorical_value,
+        CASE WHEN assessment_category = 'sbt_fail_reason' 
+            THEN value ELSE NULL
+            END AS text_value
+    FROM sbt_translated
+    """
+    return con.execute(query).fetchdf()
+
+@tag(property="test")
+def sbt_tested(sbt_fetched: pd.DataFrame) -> bool | pa.errors.SchemaErrors:
+    assessment_category_schema = pa.SeriesSchema(
+        str, 
+        checks=[pa.Check.unique_values_eq(['sbt_delivery_pass_fail', 'sbt_fail_reason'])], 
+        nullable=False
+    )
+    
+    categorical_value_schema = pa.SeriesSchema(
+        str, 
+        checks=[pa.Check.unique_values_eq(['Pass', 'Fail'])], 
+        nullable=True
+    )
+    
+    # PA_SCHEMA_SBT = PA_SCHEMA.update_columns(
+    #     {
+    #         "assessment_category": {
+    #             "checks": [pa.Check.unique_values_eq(['sbt_delivery_pass_fail', 'sbt_fail_reason'])]
+    #         },
+    #         "categorical_value": {
+    #             "checks": [pa.Check.unique_values_eq(['Pass', 'Fail'])], "nullable": True
+    #         }
+    #     }
+    # ) \
+    #     .remove_columns(["assessment_group"])
+    
+    logging.info("testing schema...")
+    try:
+        assessment_category_schema.validate(sbt_fetched["assessment_category"], lazy=True)
+        categorical_value_schema.validate(sbt_fetched["categorical_value"], lazy=True)
+        # PA_SCHEMA_SBT.validate(sbt_fetched, lazy=True)
+        return True
+    except pa.errors.SchemaErrors as exc:
+        logging.error(json.dumps(exc.message, indent=2))
+        logging.error("Schema errors and failure cases:")
+        logging.error(exc.failure_cases)
+        logging.error("\nDataFrame object that failed validation:")
+        logging.error(exc.data)
+        return exc
+ 
+def pa_category_to_group_mapper() -> dict:
     pa_mcide_url = "https://raw.githubusercontent.com/clif-consortium/CLIF/main/mCIDE/clif_patient_assessment_categories.csv"
     pa_mcide_mapping = pd.read_csv(pa_mcide_url)
     pa_category_to_group_mapper = dict(
         zip(pa_mcide_mapping["assessment_category"], pa_mcide_mapping["assessment_group"]))
+    return pa_category_to_group_mapper
 
-    logging.info("part 1: fetching GCS data...")
-    gcs = fetch_gcs()
-    
-    logging.info("part 2: fetching RASS data...")
-    rass = fetch_rass()
-
-    logging.info("part 3: fetching Braden data...")
-    braden = fetch_braden()
-    
-    logging.info("part 4: fetching CAM data...")
-    cam = fetch_cam()   
-
+@tag(property="final")
+def merged_and_cleaned(
+    pa_category_to_group_mapper: dict,
+    gcs_fetched: pd.DataFrame, 
+    rass_fetched: pd.DataFrame, 
+    braden_fetched: pd.DataFrame, 
+    cam_fetched: pd.DataFrame, 
+    sbt_fetched: pd.DataFrame) -> pd.DataFrame:
     logging.info("merging all of the above...")
-    pa_m = pd.concat([gcs, rass, braden, cam])
-    
+    df = pd.concat([gcs_fetched, rass_fetched, braden_fetched, cam_fetched, sbt_fetched])
     logging.info("converting column dtypes...")
-    pa_m["hospitalization_id"] = pa_m["hospitalization_id"].astype("string")
-    pa_m["categorical_value"] = pa_m["categorical_value"].astype("string")
-    pa_m["recorded_dttm"] = pd.to_datetime(pa_m["recorded_dttm"])
-    pa_m["recorded_dttm"] = convert_tz_to_utc(pa_m["recorded_dttm"])
-    pa_m["assessment_group"] = pa_m["assessment_group"].map(pa_category_to_group_mapper)
+    df["hospitalization_id"] = df["hospitalization_id"].astype("string")
+    df["categorical_value"] = df["categorical_value"].astype("string")
+    df["recorded_dttm"] = pd.to_datetime(df["recorded_dttm"])
+    df["recorded_dttm"] = convert_tz_to_utc(df["recorded_dttm"])
+    df["assessment_group"] = df["assessment_category"].map(pa_category_to_group_mapper)
+    return df
+
+@tag(property="test")
+def schema_tested(merged_and_cleaned: pd.DataFrame) -> bool | pa.errors.SchemaErrors:
+    logging.info("testing schema...")
+    try:
+        PA_SCHEMA.validate(merged_and_cleaned, lazy=True)
+        return True
+    except pa.errors.SchemaErrors as exc:
+        logging.error(json.dumps(exc.message, indent=2))
+        logging.error("Schema errors and failure cases:")
+        logging.error(exc.failure_cases)
+        logging.error("\nDataFrame object that failed validation:")
+        logging.error(exc.data)
+        return exc
     
-    save_to_rclif(pa_m, "patient_assessments")
+@datasaver()
+def save(merged_and_cleaned: pd.DataFrame) -> dict:
+    logging.info("saving to rclif...")
+    save_to_rclif(merged_and_cleaned, "patient_assessments")
+    
+    metadata = {
+        "table_name": "patient_assessments"
+    }
+    
     logging.info("output saved to a parquet file, everything completed for the patient assessments table!")
+    return metadata
+
+def _main():
+    logging.info("starting to build clif patient assessments table -- ")
+    from hamilton import driver
+    import __main__
+    setup_logging()
+    dr = (
+        driver.Builder()
+        .with_modules(__main__)
+        # .with_cache()
+        .build()
+    )
+    dr.execute(["save"])
+
+def _test():
+    print("testing all...")
+    from hamilton import driver
+    import __main__
+    setup_logging()
+    dr = (
+        driver.Builder()
+        .with_modules(__main__)
+        .build()
+    )
+    all_possible_outputs = dr.list_available_variables()
+    desired_outputs = [o.name for o in all_possible_outputs
+                    if 'test' == o.tags.get('property')]
+    output = dr.execute(desired_outputs)
+    return output
 
 if __name__ == "__main__":
-    main()
+    _main()
 
