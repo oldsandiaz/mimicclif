@@ -24,7 +24,7 @@ HOSP_COL_RENAME_MAPPER = {
     "discharge_location": "discharge_name"
 }
 
-def main():
+def _main():
     """
     Processes the `admissions` and `patients` tables to create the CLIF hospitalization table.
     """
@@ -36,7 +36,7 @@ def main():
     # add mapping of all NA discharge_location to "missing"
     discharge_mapper[None] = "Missing" # OR: discharge_mapper[np.nan] = 'Missing'
         
-    query = """
+    query = f"""
     SELECT 
         subject_id,
         hadm_id,
@@ -46,7 +46,7 @@ def main():
         discharge_location,
         anchor_age,
         anchor_year,
-        anchor_age + DATETIME_DIFF(admittime, DATETIME(anchor_year, 1, 1, 0, 0, 0), YEAR) AS age_at_admission
+        anchor_age + date_diff('year', make_date(anchor_year, 1, 1), admittime) AS age_at_admission
     FROM '{mimic_table_pathfinder("admissions")}'
     LEFT JOIN '{mimic_table_pathfinder("patients")}'
     USING (subject_id)
@@ -74,4 +74,4 @@ def main():
     logging.info("output saved to a parquet file, everything completed for the hospitalization table!")
 
 if __name__ == "__main__":
-    main()
+    _main()
