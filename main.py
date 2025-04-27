@@ -1,6 +1,6 @@
 import logging
 # from tqdm import tqdm
-from src.tables import labs, patient, hospitalization, adt, respiratory_support_old, vitals, patient_assessments, \
+from src.tables import labs, patient, hospitalization, adt, respiratory_support, vitals, patient_assessments, \
     medication_admin_continuous, position
 from src.utils import setup_logging, resave_all_mimic_tables_from_csv_to_parquet, \
     resave_select_mimic_tables_from_csv_to_parquet, resave_mimic_table_from_csv_to_parquet, \
@@ -13,7 +13,7 @@ CLIF_TABLES = config["clif_tables"]
 CLIF_TABLES_TO_BUILD = [clif_table for clif_table, to_build in CLIF_TABLES.items() if to_build == 1]
 logging.info(f"identified {len(CLIF_TABLES_TO_BUILD)} clif tables to build: {CLIF_TABLES_TO_BUILD}")
 
-def main():
+def _main():
     if config["create_mimic_parquet_from_csv"] == 1:
         logging.info(f"since you elected to create the mimic parquet files from csv, we first create these files:")
         create_dir_if_not_exists(MIMIC_PARQUET_DIR)
@@ -27,7 +27,7 @@ def main():
         logging.info(f"building {counter} out of {len(CLIF_TABLES_TO_BUILD)} clif tables")
         clif_table_object = globals()[clif_table_str]
         try:
-            clif_table_object.main()
+            clif_table_object._main()
         except Exception as e:
             logging.error(f"error building {clif_table_str}: {e}")
         counter += 1
@@ -35,4 +35,4 @@ def main():
     logging.info(f"finished building all clif tables! You can view them in the /output directory.")
 
 if __name__ == "__main__":
-    main()
+    _main()

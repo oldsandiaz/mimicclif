@@ -28,7 +28,7 @@ def convert_f_to_c(temp_f) -> float:
     else:
         raise("wrong type")
 
-def main():
+def _main():
     logging.info("starting to build clif vitals table -- ")
     vitals_mapping = load_mapping_csv("vitals")
     vital_name_mapper = construct_mapper_dict(vitals_mapping, "itemid", "label = vital_name")
@@ -98,4 +98,4 @@ def main():
     logging.info("output saved to a parquet file, everything completed for the vitals table!")
 
 if __name__ == "__main__":
-    main()
+    _main()

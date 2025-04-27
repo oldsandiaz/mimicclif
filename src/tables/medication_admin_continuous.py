@@ -37,7 +37,7 @@ def drop_shorter_action_name(group):
         return group.loc[[group['mar_action_name'].str.len().idxmax()]]
     return group
 
-def main():
+def _main():
     logging.info("starting to build clif medication_admin_continuous table -- ")
     mac_mcide_mapping = pd.read_csv(MAC_MCIDE_URL)
     mac_category_to_group_mapper = dict(zip(
@@ -176,4 +176,4 @@ def main():
     logging.info("output saved to a parquet file, everything completed for the medication_admin_continuous table!")
     
 if __name__ == "__main__":
-    main()
+    _main()

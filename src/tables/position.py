@@ -9,7 +9,7 @@ from src.utils import construct_mapper_dict, fetch_mimic_events, load_mapping_cs
 
 setup_logging()
 
-def main():
+def _main():
     logging.info("starting to build clif position table -- ")
     po_events = fetch_mimic_events([224093])
     query = f"""
@@ -32,4 +32,4 @@ def main():
     logging.info("output saved to a parquet file, everything completed for the position table!")
 
 if __name__ == "__main__":
-    main()
+    _main()

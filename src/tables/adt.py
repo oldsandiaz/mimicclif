@@ -20,7 +20,7 @@ ADT_COL_RENAME_MAPPER = {
     'careunit': 'location_name'
 }
 
-def main():
+def _main():
     """
     Create the CLIF ADT table.
     """
@@ -55,4 +55,4 @@ def main():
     logging.info("output saved to a parquet file, everything completed for the adt table!")
 
 if __name__ == "__main__":
-    main()
+    _main()
