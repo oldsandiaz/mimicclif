@@ -7,8 +7,8 @@ itemid,label,mode_name,count,mode_category,coherence,status,note,,device_categor
 
 Yes, but could represent the time when mechanical ventilation was stopped... may be helpful for measuring how long someone was ventilated for?",,SIMV,10
 223849,Ventilator Mode,PSV/SBT,8550,Pressure Support/CPAP,,coded/validated by K. Smith,,,Blow by,1
-223849,Ventilator Mode,PRVC/AC,5029,Pressure-Regulated Volume Control,,coded/validated by K. Smith,,,Other,14
-223849,Ventilator Mode,PCV+Assist,4152,Pressure Control,,coded/validated by K. Smith,,,,
+223849,Ventilator Mode,PRVC/AC,5029,Pressure-Regulated Volume Control,,coded/validated by K. Smith,,,Other,13
+223849,Ventilator Mode,PCV+Assist,4152,Pressure Control,,coded/validated by K. Smith,,,Volume Support,1
 223849,Ventilator Mode,CPAP/PSV+ApnVol,3410,Pressure-Regulated Volume Control,,coded/validated by K. Smith,,,,
 223849,Ventilator Mode,SIMV/PSV/AutoFlow,1947,SIMV,,coded/validated by K. Smith,,,,
 223849,Ventilator Mode,MMV/PSV,1880,Other,based on mCIDE mapping,coded/validated by K. Smith,,,,
@@ -43,7 +43,7 @@ Yes, but could represent the time when mechanical ventilation was stopped... may
 223849,Ventilator Mode,(S) CMV,1,Assist Control-Volume Control,,coded/validated by K. Smith,,,,
 229314,Ventilator Mode (Hamilton),APV (cmv),93563,Pressure-Regulated Volume Control,,updated by W. Parker,,,,
 229314,Ventilator Mode (Hamilton),SPONT,91535,Pressure Support/CPAP,not covered by mCIDE mapping,coded/validated by K. Smith,,,,
-229314,Ventilator Mode (Hamilton),ASV,8566,Other,based on mCIDE mapping,coded/validated by K. Smith,,,,
+229314,Ventilator Mode (Hamilton),ASV,8566,Volume Support,based on mCIDE mapping,updated by Z. Liao,,,,
 229314,Ventilator Mode (Hamilton),VS,2779,Pressure Support/CPAP,,updated by W. Parker,,,,
 229314,Ventilator Mode (Hamilton),P-CMV,2531,Pressure Control,,updated by W. Parker,,,,
 229314,Ventilator Mode (Hamilton),NIV,1550,Other,based on mCIDE mapping,coded/validated by K. Smith,,,,

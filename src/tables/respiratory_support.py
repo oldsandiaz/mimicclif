@@ -29,7 +29,18 @@ RESP_DEVICE_RANK = [
     "Face Mask",
     "Trach Collar",
     "Nasal Cannula",
-    "Room Air",
+    "Room Air", # NOTE: we currently do not have this "device" represented in MIMIC-CLIF
+    "Other",
+    ]
+
+RESP_DEVICE_REPRESENTED = [
+    "IMV",
+    "NIPPV",
+    "CPAP",
+    "High Flow NC",
+    "Face Mask",
+    "Trach Collar",
+    "Nasal Cannula",
     "Other",
     ]
 
@@ -49,7 +60,7 @@ CLIF_RESP_SCHEMA = pa.DataFrameSchema(
         "hospitalization_id": pa.Column(str, nullable=False),
         "recorded_dttm": pa.Column(pd.DatetimeTZDtype(unit="us", tz="UTC"), nullable=False),
         "device_name": pa.Column(str, nullable=True),
-        "device_category": pa.Column(str, checks=[pa.Check.unique_values_eq(RESP_DEVICE_RANK)], nullable=True),
+        "device_category": pa.Column(str, checks=[pa.Check.isin(RESP_DEVICE_REPRESENTED)], nullable=True),
         "vent_brand_name": pa.Column(str, nullable=True),
         "mode_name": pa.Column(str, nullable=True),
         "mode_category": pa.Column(str, checks=[pa.Check.unique_values_eq(MODE_CATEGORIES)], nullable=True),
@@ -142,7 +153,30 @@ def none_value_rows_removed(extracted_mimic_events_translated: pd.DataFrame = No
         raise ValueError(
             "The rows with 'None' value have itemid other than 226732 (O2 Delivery Device(s))."
         )
-    
+
+def _clean_fio2_set_helper(value: float) -> float:
+    """
+    ref: https://github.com/MIT-LCP/mimic-code/blob/e39825259beaa9d6bc9b99160049a5d251852aae/mimic-iv/concepts/measurement/bg.sql#L130
+    """
+    value = float(value)
+    if value >= 20 and value <= 100:
+        return value / 100
+    elif value > 1 and value < 20:
+        return np.nan
+    elif value > 0.2 and value <= 1:
+        return value
+    else:
+        return np.nan
+
+def fio2_set_cleaned(none_value_rows_removed: pd.DataFrame) -> pd.DataFrame:
+    '''
+    Apply outlier handling and drop the nulls thus generated.
+    '''     
+    logging.info("cleaning fio2_set...")
+    mask = none_value_rows_removed['variable'] == 'fio2_set'
+    none_value_rows_removed.loc[mask, 'value'] = none_value_rows_removed.loc[mask, 'value'].apply(_clean_fio2_set_helper)        
+    return none_value_rows_removed.dropna(subset=['value'])
+
 def duplicates_removed(
     fio2_set_cleaned: pd.DataFrame,
     resp_mapper: dict,
@@ -312,29 +346,6 @@ def renamed_reordered_recasted(
         resp_final[col_name] = resp_final[col_name].astype(float)
     return resp_final
 
-def _clean_fio2_set_helper(value: float) -> float:
-    """
-    ref: https://github.com/MIT-LCP/mimic-code/blob/e39825259beaa9d6bc9b99160049a5d251852aae/mimic-iv/concepts/measurement/bg.sql#L130
-    """
-    value = float(value)
-    if value >= 20 and value <= 100:
-        return value / 100
-    elif value > 1 and value < 20:
-        return np.nan
-    elif value > 0.2 and value <= 1:
-        return value
-    else:
-        return np.nan
-
-def fio2_set_cleaned(none_value_rows_removed: pd.DataFrame) -> pd.DataFrame:
-    '''
-    Apply outlier handling and drop the nulls thus generated.
-    '''     
-    logging.info("cleaning fio2_set...")
-    mask = none_value_rows_removed['variable'] == 'fio2_set'
-    none_value_rows_removed.loc[mask, 'value'] = none_value_rows_removed.loc[mask, 'value'].apply(_clean_fio2_set_helper)        
-    return none_value_rows_removed.dropna(subset=['value'])
-
 @tag(property="final")
 def tracheostomy_imputed(renamed_reordered_recasted: pd.DataFrame) -> pd.DataFrame:
     logging.info(
@@ -380,7 +391,8 @@ def schema_tested(tracheostomy_imputed: pd.DataFrame) -> bool | pa.errors.Schema
 
 @tag(property="test")
 def no_nulls_tested(tracheostomy_imputed: pd.DataFrame) -> bool:
-    all_null_rows = _find_and_report_all_null_rows(tracheostomy_imputed)
+    df = tracheostomy_imputed.copy()
+    all_null_rows = _find_and_report_all_null_rows(df)
     return len(all_null_rows) == 0
 
 @datasaver()
@@ -392,6 +404,22 @@ def save(tracheostomy_imputed: pd.DataFrame) -> dict:
     }
     
     return metadata
+
+def _test():
+    logging.info("testing all...")
+    from hamilton import driver
+    import src.tables.respiratory_support as respiratory_support
+    setup_logging()
+    dr = (
+        driver.Builder()
+        .with_modules(respiratory_support)
+        .build()
+    )
+    all_nodes = dr.list_available_variables()
+    test_nodes = [node.name for node in all_nodes if 'test' == node.tags.get('property')]
+    output = dr.execute(test_nodes)
+    print(output)
+    return output
 
 def _main():
     from hamilton import driver
