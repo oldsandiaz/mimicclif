@@ -72,10 +72,13 @@ After you navigated to the project directory, run the following *line by line*:
 ```sh
 # create a virtual environment
 python3 -m venv .venv/
+
 # activate the virtual environment
 source .venv/bin/activate
+
 # install the dependencies
 pip install -r requirements.txt
+
 # run the pipeline
 python3 main.py
 ```
