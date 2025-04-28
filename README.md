@@ -4,16 +4,16 @@ This repository provides the ETL pipeline to transform MIMIC-IV database into th
 
 #### Table of contents
 - [Documentation](#documentation)
-- [Instructions](#instructions)
+- [Usage](#usage)
 - [Contributing](#contributing)
 - [License](#license)
 
 ## Documentation
-For recent and planned future releases, see the [change log](CHANGELOG.md).
+For recent updates and future releases, see the [change log](CHANGELOG.md).
 
 For the mapping of data elements from MIMIC-IV to CLIF, see [this spreadsheet](https://docs.google.com/spreadsheets/d/1QhybvnlIuNFw0t94JPE6ei2Ei6UgzZAbGgwjwZCTtxE/edit?usp=sharing.) for details.
 
-## Instructions
+## Usage
 Fork your own copy of this repository, and clone to your local directory. 
 
 ### Add your configuration
@@ -67,13 +67,13 @@ The following example shows I have specified two sets of paths corresponding to 
 4. You can also store multiple versions of the CLIF table outputs by customizing `clif_output_dir_name`. If you leave it blank with `""`, the program would default to naming it `f"rclif-{CLIF_VERSION}"`. 
 
 ### Run the pipeline
-After you navigated to the project directory, run the following line by line:
+After you navigated to the project directory, run the following *line by line*:
 
-```python
+```sh
 # create a virtual environment
-python3 -m venv mimic_to_clif_venv/
+python3 -m venv .venv/
 # activate the virtual environment
-source mimic_to_clif_venv/bin/activate
+source .venv/bin/activate
 # install the dependencies
 pip install -r requirements.txt
 # run the pipeline
