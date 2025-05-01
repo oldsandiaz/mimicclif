@@ -86,6 +86,7 @@ MIMIC_TABLES_NEEDED_FOR_CLIF = [
     "procedureevents"
 ]
 
+CLIF_DTTM_FORMAT = "YYYY-MM-DD HH:MM:SS+00:00"
 
 def setup_logging(log_file: str = "logs/etl.log"):
     """
@@ -241,7 +242,7 @@ def construct_mapper_dict(
     map_none_to_none=False,
     excluded_item_ids: list = None,
     decision_col: str = "decision",
-    excluded_labels: list = ["NO MAPPING", "UNSURE", "MAPPED ELSEWHERE", "ALREADY MAPPED"],
+    excluded_labels: list = ["NO MAPPING", "UNSURE", "MAPPED ELSEWHERE", "ALREADY MAPPED", "NOT AVAILABLE"],
 ):
     """
     covert to a dict for df col renaming later
@@ -275,7 +276,7 @@ def get_relevant_item_ids(
     decision_col: str,
     excluded_labels: list = EXCLUDED_LABELS_DEFAULT,
     excluded_item_ids: list = None,
-):
+) -> pd.Series:
     """
     Parse the mapping files to identify all the relevant item ids for a table.
     - decision_col: the col on which to apply the excluded_labels
@@ -295,13 +296,21 @@ def get_relevant_item_ids(
 #   ETL - data manipulation
 # -----------------------------
 
+def convert_tz_to_utc(series: pd.Series) -> pd.Series:
+    """
+    Convert a series of timestamps to UTC.
+    """
+    MIMIC_TZ = "US/Eastern"
+    series = series.dt.tz_localize(MIMIC_TZ, ambiguous="NaT", nonexistent="shift_forward")
+    return series.dt.tz_convert("UTC")
+
 def convert_and_sort_datetime(df: pd.DataFrame, additional_cols: list[str] = None):
     if not additional_cols:
         additional_cols = []
     # for procedure events
     if "starttime" in df.columns and "endtime" in df.columns:
-        df["starttime"] = pd.to_datetime(df["starttime"], format="%Y-%m-%d %H:%M:%S")
-        df["endtime"] = pd.to_datetime(df["endtime"], format="%Y-%m-%d %H:%M:%S")
+        df["starttime"] = pd.to_datetime(df["starttime"], format=CLIF_DTTM_FORMAT)
+        df["endtime"] = pd.to_datetime(df["endtime"], format=CLIF_DTTM_FORMAT)
         ordered_cols = [
             "hadm_id",
             "starttime",
@@ -311,18 +320,18 @@ def convert_and_sort_datetime(df: pd.DataFrame, additional_cols: list[str] = Non
         df = df.sort_values(ordered_cols).reset_index(drop=True).reset_index()
     # for chart events
     elif "charttime" in df.columns:
-        df["charttime"] = pd.to_datetime(df["charttime"])
+        df["charttime"] = pd.to_datetime(df["charttime"], format=CLIF_DTTM_FORMAT)
         ordered_cols = ["hadm_id", "charttime", "storetime"] + additional_cols
         df = df.sort_values(ordered_cols).reset_index(drop=True).reset_index()
     elif "time" in df.columns:
-        df["time"] = pd.to_datetime(df["time"])
+        df["time"] = pd.to_datetime(df["time"], format=CLIF_DTTM_FORMAT)
         ordered_cols = ["hadm_id", "time"] + additional_cols
         df = df.sort_values(ordered_cols)
     return df
 
 
 def rename_and_reorder_cols(
-    df, rename_mapper_dict: dict, new_col_order: list
+    df: pd.DataFrame, rename_mapper_dict: dict, new_col_order: list
 ) -> pd.DataFrame:
     '''
     Rename and reorder columns of a dataframe.
@@ -503,7 +512,7 @@ def fetch_mimic_events(item_ids: list[int], original: bool = False, for_labs: bo
         ]
         df_m = pd.concat(df_list)
         logging.info(
-            f"concatenated {len(df_m)} events from {len(eventtable_to_itemids_mapper)} event tables"
+            f"concatenated {len(df_m)} events from {len(eventtable_to_itemids_mapper)} event table(s)"
         )
         return df_m
 
@@ -725,7 +734,7 @@ def search_mimic_items(kw, col: str = "label", case_sensitive: bool = False, for
     df_m = df_m[["kw"] + [col for col in df_m.columns if col != "kw"]]
         
     logging.info(
-        f"Found and concatenated {len(df_m)} items from across {len(eventtable_to_itemids_mapper)} event tables"
+        f"Found and concatenated {len(df_m)} items from across {len(eventtable_to_itemids_mapper)} event table(s)"
     )
     return df_m
 

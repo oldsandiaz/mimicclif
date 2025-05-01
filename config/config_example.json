@@ -1,11 +1,11 @@
 {   "current_workspace": "local_test",
     "local": {
-        "mimic_csv_dir": "/Users/wliao0504/Library/Mobile Documents/com~apple~CloudDocs/Repo/hca-lab/CLIF-MIMIC/data/mimic-data/mimic-iv-3.1",
+        "mimic_csv_dir": "/Users/whatever_username/repos/CLIF-MIMIC/data/mimic-data/mimic-iv-3.1",
         "mimic_parquet_dir":""
     },
     "local_test": {
-        "mimic_csv_dir": "/Users/wliao0504/Library/Mobile Documents/com~apple~CloudDocs/Repo/hca-lab/CLIF-MIMIC/data/mimic-data/mimic-iv-3.1",
-        "mimic_parquet_dir":"/Users/wliao0504/Library/Mobile Documents/com~apple~CloudDocs/Repo/hca-lab/CLIF-MIMIC/data/mimic-data/mimic-iv-3.1/parquet-dev-test"
+        "mimic_csv_dir": "/Users/whatever_username/repos/CLIF-MIMIC/data/mimic-data/mimic-iv-3.1",
+        "mimic_parquet_dir":"/Users/whatever_username/repos/CLIF-MIMIC/data/mimic-data/mimic-iv-3.1/parquet-dev-test"
     },
     "hpc": {
         "mimic_csv_dir": "",

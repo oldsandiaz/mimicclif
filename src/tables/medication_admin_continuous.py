@@ -7,7 +7,7 @@ import src.utils
 reload(src.utils)
 from src.utils import construct_mapper_dict, fetch_mimic_events, load_mapping_csv, \
     get_relevant_item_ids, find_duplicates, rename_and_reorder_cols, save_to_rclif, \
-    convert_and_sort_datetime, setup_logging, search_mimic_items
+    convert_and_sort_datetime, setup_logging, search_mimic_items, convert_tz_to_utc
 
 setup_logging()
 
@@ -37,7 +37,7 @@ def drop_shorter_action_name(group):
         return group.loc[[group['mar_action_name'].str.len().idxmax()]]
     return group
 
-def main():
+def _main():
     logging.info("starting to build clif medication_admin_continuous table -- ")
     mac_mcide_mapping = pd.read_csv(MAC_MCIDE_URL)
     mac_category_to_group_mapper = dict(zip(
@@ -163,6 +163,7 @@ def main():
     
     logging.info("casting dtypes...")
     mac_ldfd["hospitalization_id"] = mac_ldfd["hospitalization_id"].astype("string")
+    mac_ldfd["admin_dttm"] = convert_tz_to_utc(mac_ldfd["admin_dttm"])
     mac_ldfd["med_order_id"] = mac_ldfd["med_order_id"].astype("string")
     mac_ldfdf = mac_ldfd.copy()
     mac_ldfdf['med_dose'] = np.where(
@@ -175,4 +176,4 @@ def main():
     logging.info("output saved to a parquet file, everything completed for the medication_admin_continuous table!")
     
 if __name__ == "__main__":
-    main()
+    _main()

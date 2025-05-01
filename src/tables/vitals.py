@@ -5,7 +5,7 @@ import logging
 from functools import cache
 from src.utils import construct_mapper_dict, fetch_mimic_events, load_mapping_csv, \
     get_relevant_item_ids, find_duplicates, rename_and_reorder_cols, save_to_rclif, \
-    convert_and_sort_datetime, setup_logging, EXCLUDED_LABELS_DEFAULT   
+    convert_and_sort_datetime, setup_logging, EXCLUDED_LABELS_DEFAULT, convert_tz_to_utc
 
 setup_logging()
 
@@ -28,7 +28,7 @@ def convert_f_to_c(temp_f) -> float:
     else:
         raise("wrong type")
 
-def main():
+def _main():
     logging.info("starting to build clif vitals table -- ")
     vitals_mapping = load_mapping_csv("vitals")
     vital_name_mapper = construct_mapper_dict(vitals_mapping, "itemid", "label = vital_name")
@@ -92,9 +92,10 @@ def main():
     vitals_m["hospitalization_id"] = vitals_m["hospitalization_id"].astype("string")
     vitals_m["vital_value"] = vitals_m["vital_value"].astype(float)
     vitals_m["recorded_dttm"] = pd.to_datetime(vitals_m["recorded_dttm"])
+    vitals_m["recorded_dttm"] = convert_tz_to_utc(vitals_m["recorded_dttm"])
     
     save_to_rclif(vitals_m, "vitals")
     logging.info("output saved to a parquet file, everything completed for the vitals table!")
 
 if __name__ == "__main__":
-    main()
+    _main()
