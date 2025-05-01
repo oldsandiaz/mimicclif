@@ -1,21 +1,19 @@
 # MIMIC-IV to CLIF ETL Pipeline
 
-This repository provides the ETL pipeline to transform the MIMIC-IV database into the Common Longitudinal ICU data Format (CLIF). The latest release is [v0.1.0](CHANGELOG.md#v010---2025-04-27), transforming [MIMIC-IV 3.1](https://physionet.org/content/mimiciv/3.1/) into [CLIF 2.0.0](https://clif-consortium.github.io/website/data-dictionary/data-dictionary-2.0.0.html). 
+This repository provides the ETL pipeline to transform the MIMIC-IV database into the Common Longitudinal ICU data Format (CLIF). The latest release is [v0.1.0](CHANGELOG.md#v010---2025-04-27), released in April 2025, and transforms [MIMIC-IV 3.1](https://physionet.org/content/mimiciv/3.1/) into [CLIF 2.0.0](https://clif-consortium.github.io/website/data-dictionary/data-dictionary-2.0.0.html). 
 
 
 #### Table of contents
-- [Documentation](#documentation)
 - [Usage](#usage)
 - [Contributing](#contributing)
 - [License](#license)
+- [Documentation](#documentation)
 
-## Documentation
-For recent updates and planned future releases, see the [change log](CHANGELOG.md).
-
-For the mapping of data elements from MIMIC-IV to CLIF, see [this spreadsheet](https://docs.google.com/spreadsheets/d/1QhybvnlIuNFw0t94JPE6ei2Ei6UgzZAbGgwjwZCTtxE/edit?usp=sharing.) for details.
 
 ## Usage
-Fork your own copy of this repository, and clone to your local directory. 
+If you are an existing user, please `git pull` the main branch and refer to the [change log](CHANGELOG.md) for the updated CLIF tables that need to be re-generated.
+
+If you are a new user, fork your own copy of this repository, and `git clone` to your local directory. 
 
 ### Add your configuration
 
@@ -83,6 +81,11 @@ pip install -r requirements.txt
 # run the pipeline
 python3 main.py
 ```
+
+## Documentation
+For recent updates and planned future releases, see the [change log](CHANGELOG.md).
+
+For the mapping of data elements from MIMIC-IV to CLIF, see [this spreadsheet](https://docs.google.com/spreadsheets/d/1QhybvnlIuNFw0t94JPE6ei2Ei6UgzZAbGgwjwZCTtxE/edit?usp=sharing.) for details.
 
 ## Contributing
 To contribute to this open-source project, feel free to :
