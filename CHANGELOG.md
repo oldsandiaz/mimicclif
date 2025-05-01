@@ -3,7 +3,7 @@
 | MIMIC version | CLIF version | Status | Latest CLIF-MIMIC release |
 |------|--------|----------|-----------|  
 | IV-3.1 | [2.1.0](https://clif-consortium.github.io/website/data-dictionary/data-dictionary-2.1.0.html) | 🚀 |  Arriving soon!   |
-| IV-3.1 | [2.0.0](https://clif-consortium.github.io/website/data-dictionary/data-dictionary-2.0.0.html)  | ✅ |  [v0.1.0](#v010---2025-04-27)  |
+| IV-3.1 | [2.0.0](https://clif-consortium.github.io/website/data-dictionary/data-dictionary-2.0.0.html)  | ✅ |  [v0.1.0](#latest-v010---2025-05-01)  |
 
 ## LATEST! [v0.1.0] - 2025-05-01
 ### Readme
