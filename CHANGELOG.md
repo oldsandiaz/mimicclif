@@ -16,7 +16,7 @@ If you are using this release, please update all CLIF tables as they are all imp
 ### New
 - add Spontaneous Breathing Trial (SBT) data elements to the CLIF `patient_assessments` table (specifically `sbt_delivery_pass_fail` and `sbt_fail_reason`)
 - add outlier labs values parsed from MIMIC comments
-- add [`Hamilton`](https://hamilton.dagworks.io/en/latest/) and [`pandera`](https://www.union.ai/pandera) for back-end pipeline orchestration and data quality validation respectively
+- add [`hamilton`](https://hamilton.dagworks.io/en/latest/) and [`pandera`](https://www.union.ai/pandera) as light-weight back-end frameworks for pipeline orchestration and data quality validation respectively
 
 ### Changed
 - convert all date-time fields (ending in `dttm`) from UTC−05:00 (U.S. Eastern Time Zone) to UTC, following a [CLIF-wide design](https://github.com/Common-Longitudinal-ICU-data-Format/CLIF/issues/40) to standardize timezone representation
