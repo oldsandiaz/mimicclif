@@ -9,7 +9,7 @@
 ### Readme
 This is the last CLIF-MIMIC release for [CLIF's 2.0.0 version](https://clif-consortium.github.io/website/data-dictionary/data-dictionary-2.0.0.html). It is a major update that introduces new data elements as well as fixes that yield much cleaner data with fewer nulls. 
 
-That said, the CLIF-MIMIC release for [CLIF 2.1.0]((https://clif-consortium.github.io/website/data-dictionary/data-dictionary-2.1.0.html)) is scheduled next week, so **unless you are interested in obtaining the new SBT data elements right now, you are welcomed to wait for the next release, where more data elements will be added** (and are currently withheld to align with 2.0.0's schema).
+That said, the CLIF-MIMIC release for [CLIF 2.1.0](https://clif-consortium.github.io/website/data-dictionary/data-dictionary-2.1.0.html) is scheduled next week, so **unless you are interested in obtaining the new SBT data elements right now, you are welcomed to wait for the next release, where more data elements will be added** (and are currently withheld to align with 2.0.0's schema).
 
 If you are using this release, please update all CLIF tables as they are all impacted by the time-zone update. You should also re-install or update the virtual environment following the [README](README.md#run-the-pipeline) since new packages were added to validate data quality.
 
