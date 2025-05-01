@@ -1,8 +1,6 @@
 # MIMIC-IV to CLIF ETL Pipeline
 
-This repository provides the ETL pipeline to transform the MIMIC-IV database into the Common Longitudinal ICU data Format (CLIF).
-
-The latest release is [v0.1.0](CHANGELOG.md#v010---2025-04-27), transforming [MIMIC-IV 3.1](https://physionet.org/content/mimiciv/3.1/) to [CLIF 2.0.0](https://clif-consortium.github.io/website/data-dictionary/data-dictionary-2.0.0.html). 
+This repository provides the ETL pipeline to transform the MIMIC-IV database into the Common Longitudinal ICU data Format (CLIF). The latest release is [v0.1.0](CHANGELOG.md#v010---2025-04-27), transforming [MIMIC-IV 3.1](https://physionet.org/content/mimiciv/3.1/) into [CLIF 2.0.0](https://clif-consortium.github.io/website/data-dictionary/data-dictionary-2.0.0.html). 
 
 
 #### Table of contents

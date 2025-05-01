@@ -11,7 +11,7 @@ This is the last CLIF-MIMIC release for [CLIF's 2.0.0 version](https://clif-cons
 
 That said, the CLIF-MIMIC release for [CLIF 2.1.0]((https://clif-consortium.github.io/website/data-dictionary/data-dictionary-2.1.0.html)) is scheduled next week, so **unless you are interested in obtaining the new SBT data elements right now, you are welcomed to wait for the next release, where more data elements will be added** (and are currently withheld to align with 2.0.0's schema).
 
-If you are using this release, please update all CLIF tables since the time-zone update impacts all CLIF tables.
+If you are using this release, please update all CLIF tables as they are all impacted by the time-zone update.
 
 ### New
 - add Spontaneous Breathing Trial (SBT) data elements to the CLIF `patient_assessments` table (specifically `sbt_delivery_pass_fail` and `sbt_fail_reason`)
