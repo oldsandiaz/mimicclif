@@ -5,7 +5,7 @@
     },
     "create_mimic_parquet_from_csv": 1,
     "overwrite_existing_mimic_parquet": 0,
-    "clif_output_dir_name": "",
+    "clif_output_dir_name": "/Users/cdiaz/Documents/R/Data/mimic-iv-3.1/hosp",
     "mimic_version": "3.1",
     "clif_version": "2.0",
     "clif_tables": {
