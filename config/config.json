@@ -1,6 +1,6 @@
 {   "current_workspace": "default",
     "default": {
-        "mimic_csv_dir": "/Users/cdiaz/Documents/R/Data/mimic-iv-3.1/hosp",
+        "mimic_csv_dir": "/Users/cdiaz/Documents/R/Data/mimic-iv-3.1/",
         "mimic_parquet_dir": ""
     },
     "create_mimic_parquet_from_csv": 1,
